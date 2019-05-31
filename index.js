@@ -152,5 +152,14 @@ module.exports = {
         } catch(error){
             return error;
         }
+    },
+
+    /**
+     * This function returns the list of all backup
+     * @returns The list of the backups
+     */
+    async list(){
+        let files = await readdir(backups); // Read "backups" directory
+        return files.map((f) => f.substr(0, 5));
     }
 };
