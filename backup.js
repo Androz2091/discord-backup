@@ -50,7 +50,7 @@ module.exports = {
     async getEmojis(guild){
         let emojis = [];
         guild.emojis.forEach((emoji) => {
-            var eData = {
+            let eData = {
                 name: emoji.name,
                 url: emoji.url
             };
@@ -81,7 +81,7 @@ module.exports = {
                 // Gets the children channels of the category and sort them by position
                 let children = category[1].children.sort((a,b) => a.position-b.position);
                 for(let child of children){ // For each child channel
-                    var channelData = await utils.fetchChannelData(child[1]); // Gets the channel data
+                    let channelData = await utils.fetchChannelData(child[1]); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 }
                 channels.categories.push(categoryData); // Update channels object
@@ -89,8 +89,8 @@ module.exports = {
             // Gets the list of the other channels (that are not in a category) and sort them by position
             let others = guild.channels.filter((ch) => !ch.parent && ch.type !== "category").sort((a,b) => a.position-b.position);
             for(let channel of others){ // For each channel
-                var channelData = await utils.fetchChannelData(channel[1]); // Gets the channel data
-                data.others.push(channelData); // Update channels object
+                let channelData = await utils.fetchChannelData(channel[1]); // Gets the channel data
+                channels.others.push(channelData); // Update channels object
             };
             resolve(channels); // Returns the list of the channels
         });
