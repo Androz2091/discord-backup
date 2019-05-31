@@ -1,0 +1,31 @@
+{
+  "name": "discord-backup",
+  "version": "1.0.0",
+  "description": "A complete framework to facilitate server backup using discord.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Androz2091/discord-backup.git"
+  },
+  "keywords": [
+    "discord",
+    "discord.js",
+    "backup",
+    "clone",
+    "bot",
+    "discord-backup"
+  ],
+  "author": "Androz2091",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Androz2091/discord-backup/issues"
+  },
+  "homepage": "https://github.com/Androz2091/discord-backup#readme",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "util": "^0.12.0"
+  }
+}
