@@ -1,3 +1,6 @@
+# Backups
+backups/
+
 # Logs
 logs
 *.log
