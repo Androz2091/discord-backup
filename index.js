@@ -11,7 +11,9 @@ if(!fs.existsSync(backups)){
     fs.mkdirSync(backups);
 }
 
-const backup = require("./backup");
+const fBackup = require("./functions/backup"),
+fLoad = require("./functions/load"),
+utils = require("./functions/utils");
 
 module.exports = {
 
@@ -51,7 +53,6 @@ module.exports = {
      * @returns The backup ID
      */
     async create(guild){
-
         let guildData = {
             name: guild.name,
             icon: guild.iconURL(),
@@ -76,34 +77,66 @@ module.exports = {
             roles:[],
             bans:[],
             emojis:[],
-            createdAt: Date.now(),
+            createdTimestamp: Date.now(),
             guildID: guild.id
-        }
-
+        };
         // Backup bans
-        guildData.bans = await backup.getBans(guild);
-
+        guildData.bans = await fBackup.getBans(guild);
         // Backup roles
-        guildData.roles = await backup.getRoles(guild);
-
+        guildData.roles = await fBackup.getRoles(guild);
         // Backup emojis
-        guildData.emojis = await backup.getEmojis(guild);
-
+        guildData.emojis = await fBackup.getEmojis(guild);
         // Backup channels
-        guildData.channels = await backup.getChannels(guild);
-
+        guildData.channels = await fBackup.getChannels(guild);
         // Convert Object to JSON
-        var backupJSON = JSON.stringify(guildData);
-
+        let backupJSON = JSON.stringify(guildData);
         // Create backup ID
-        var backupID = randomstring.generate(5);
-
+        let backupID = randomstring.generate(5);
         // Save the backup
         fs.writeFileSync(`${backups}${backupID}.json`, backupJSON);
-
         // Returns ID
         return backupID;
+    },
 
+    /**
+     * This function loads a backup for a guild
+     * @param {string} backupID The ID of the backup to load
+     * @param {object} guild The guild on which the backup will be loaded
+     * @returns If the operation is successful
+     */
+    async load(backupID, guild){
+        return new Promise(async function(resolve, reject){
+            let files = await readdir(backups); // Read "backups" directory
+            // Try to get the Json file
+            let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
+            if(file){ // If the file exists
+                let backupInformations = require(`${backups}${file}`);
+                if(!guild){
+                    return reject("Invalid guild");
+                }
+                // Clear the guild
+                await utils.clearGuild(guild);
+                // Restore guild configuration
+                await fLoad.configuration(guild, backupInformations);
+                // Restore guild roles
+                await fLoad.roles(guild, backupInformations);
+                // Restore guild channels
+                await fLoad.channels(guild, backupInformations);
+                // Restore afk channel and timeout
+                await fLoad.afk(guild, backupInformations);
+                // Restore guild emojis
+                await fLoad.emojis(guild, backupInformations);
+                // Restore guild bans
+                await fLoad.bans(guild, backupInformations);
+                // Restore embed channel
+                await fLoad.embedChannel(guild, backupInformations);
+                // Then return true
+                return resolve(true);
+            } else {
+                // If no backup was found, return an error message
+                return reject("No backup found");
+            }
+        });
     },
 
     /**
