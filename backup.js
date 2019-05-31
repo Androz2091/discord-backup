@@ -95,4 +95,4 @@ module.exports = {
             resolve(channels); // Returns the list of the channels
         });
     }
-};
+}

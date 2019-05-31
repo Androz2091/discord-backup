@@ -4,9 +4,9 @@
  * @returns The OverwritesPermission
  */
 function fetchOverwritesPermission(GuildChannel){
-    var permOverwrites = [];
+    let permOverwrites = [];
     GuildChannel.permissionOverwrites.filter((p) => p.type === "role").forEach((perm) => { // For each overwrites permission
-        var role = GuildChannel.guild.roles.get(perm.id);
+        let role = GuildChannel.guild.roles.get(perm.id);
         permOverwrites.push({
             roleName: role.name,
             perm: permOverwrites.perm,
@@ -65,7 +65,35 @@ async function fetchChannelData(GuildChannel){
     });
 }
 
+/**
+ * Delete all roles, all channels, all emojis, etc... of a guild
+ * @param {object} guild
+ */
+async function clearGuild(guild) {
+    //let roleThatGivesMeAdminPermissions = guild.me.roles.filter((r) => r.permissions.has("ADMINISTRATOR"));
+    guild.roles.filter((role) => role.editable && role.id !== guild.defaultRole.id).forEach((role) => {
+        role.delete().catch(O_o=>{});
+    });
+    guild.channels.forEach((channel) => {
+        channel.delete().catch(O_o=>{});
+    });
+    guild.emojis.forEach((emoji) => {
+        emoji.delete().catch(O_o=>{});
+    });
+    let webhooks = await guild.fetchWebhooks();
+    webhooks.forEach((webhook) => {
+        webhook.delete().catch(O_o=>{})
+    });
+    let bans = await guild.fetchBans();
+    bans.forEach((ban) => {
+        guild.members.unban(ban.user).catch(O_o=>{});
+    });
+    return;
+}
+
+
 module.exports = {
     fetchOverwritesPermission: fetchOverwritesPermission,
-    fetchChannelData: fetchChannelData
-};
+    fetchChannelData: fetchChannelData,
+    clearGuild: clearGuild
+}
