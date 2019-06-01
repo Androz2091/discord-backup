@@ -216,11 +216,11 @@ client.on("message", async message => {
 //Your secret token to log the bot in. (never share this to anyone!)
 client.login(settings.token);
 
-function timeConverter(t) {     
+function timeConverter(t) {
     var a = new Date(t);
     var today = new Date();
     var yesterday = new Date(Date.now() - 86400000);
-    var months = ["Jan", "Feb", 'Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var year = a.getFullYear();
     var month = months[a.getMonth()];
     var date = a.getDate();
@@ -234,4 +234,5 @@ function timeConverter(t) {
         return date + " " + month + ", " + hour + ":" + min;
     else
         return date + " " + month + " " + year + ", " + hour + ":" + min;
-}```
+}
+```
