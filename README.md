@@ -1,32 +1,19 @@
 # Discord Backup
 
-**Note**: This package is under development and will be updated frequently.
+**Note**: this module uses recent discordjs features and requires discord.js version 12.
 
 Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows you to easily manage discord server backups.
 
-*   Restores channels
-*   Restores emojis
-*   Restores bans
-*   Restores permissions (for roles and channels)
-*   Restores messages
-*   Restores the guild configuration (notification settings, name, icon, and more!)
+*   Unlimited backups!
+*   Backup creation takes less than 10 seconds!
+*   Even restores messages with webhooks!
+*   And restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
 
 ## Installation
 
 ```js
 npm install --save discord-backup
 ```
-
-### Required packages
-
-*   [fs](https://www.npmjs.com/package/fs) used to store backups in json files (`npm install --save fs`)
-*   [randomstring](https://www.npmjs.com/package/randomstring) used to generate backups ID (`npm install --save randomstring`)
-
-### Optional
-
-*   [discord.js](https://www.npmjs.com/package/discord.js) - (`npm install --save discord.js`)
-*   [discord.js-commando](https://www.npmjs.com/package/discord.js-commando) - (`npm install --save discord.js-commando`)
-*   [eris](https://www.npmjs.com/package/eris) - (`npm install --save eris`)
 
 ## Functions
 

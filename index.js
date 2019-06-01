@@ -69,49 +69,59 @@ module.exports = {
      * @returns The backup ID
      */
     async create(guild){
-        let guildData = {
-            name: guild.name,
-            icon: guild.iconURL(),
-            region: guild.region,
-            verificationLevel: guild.verificationLevel,
-            explicitContentFilter: guild.explicitContentFilter,
-            defaultMessageNotifications: guild.defaultMessageNotifications,
-            AFK: (guild.afkChannel ? {
-                name: guild.afkChannel.name,
-                timeout: guild.afkTimeout
-            } : false),
-            embed:{
-                enabled: guild.embedEnabled,
-                channel: (guild.embedChannel ? guild.embedChannel.name : false)
-            },
-            splash: guild.splashURL(),
-            banner: guild.banner,
-            channels:{
-                categories:[],
-                others:[]
-            },
-            roles:[],
-            bans:[],
-            emojis:[],
-            createdTimestamp: Date.now(),
-            guildID: guild.id
-        };
-        // Backup bans
-        guildData.bans = await fBackup.getBans(guild).catch((err) => {});
-        // Backup roles
-        guildData.roles = await fBackup.getRoles(guild).catch((err) => {});
-        // Backup emojis
-        guildData.emojis = await fBackup.getEmojis(guild).catch((err) => {});
-        // Backup channels
-        guildData.channels = await fBackup.getChannels(guild).catch((err) => {});
-        // Convert Object to JSON
-        let backupJSON = JSON.stringify(guildData);
-        // Create backup ID
-        let backupID = randomstring.generate(5);
-        // Save the backup
-        fs.writeFileSync(`${backups}${backupID}.json`, backupJSON);
-        // Returns ID
-        return backupID;
+        return new Promise(async function(resolve, reject){
+            // Check if it's the good version
+            try {
+                guild.iconURL();
+            } catch(error){
+                if(error.message.includes("guild.iconURL is not a function")){
+                    return reject("You must install and use discord.js version 12 or higher to use this package!");
+                }
+            }
+            let guildData = {
+                name: guild.name,
+                icon: guild.iconURL(),
+                region: guild.region,
+                verificationLevel: guild.verificationLevel,
+                explicitContentFilter: guild.explicitContentFilter,
+                defaultMessageNotifications: guild.defaultMessageNotifications,
+                AFK: (guild.afkChannel ? {
+                    name: guild.afkChannel.name,
+                    timeout: guild.afkTimeout
+                } : false),
+                embed:{
+                    enabled: guild.embedEnabled,
+                    channel: (guild.embedChannel ? guild.embedChannel.name : false)
+                },
+                splash: guild.splashURL(),
+                banner: guild.banner,
+                channels:{
+                    categories:[],
+                    others:[]
+                },
+                roles:[],
+                bans:[],
+                emojis:[],
+                createdTimestamp: Date.now(),
+                guildID: guild.id
+            };
+            // Backup bans
+            guildData.bans = await fBackup.getBans(guild).catch((err) => {});
+            // Backup roles
+            guildData.roles = await fBackup.getRoles(guild).catch((err) => {});
+            // Backup emojis
+            guildData.emojis = await fBackup.getEmojis(guild).catch((err) => {});
+            // Backup channels
+            guildData.channels = await fBackup.getChannels(guild).catch((err) => {});
+            // Convert Object to JSON
+            let backupJSON = JSON.stringify(guildData);
+            // Create backup ID
+            let backupID = randomstring.generate(5);
+            // Save the backup
+            fs.writeFileSync(`${backups}${backupID}.json`, backupJSON);
+            // Returns ID
+            resolve(backupID);
+        });
     },
 
     /**
@@ -125,6 +135,14 @@ module.exports = {
             getBackupInformations(backupID).then(async (backupInformations) => {
                 if(!guild){
                     return reject("Invalid guild");
+                }
+                // Check if it's the good version
+                try {
+                    guild.iconURL();
+                } catch(error){
+                    if(error.message.includes("guild.iconURL is not a function")){
+                        return reject("You must install and use discord.js version 12 or higher to use this package!");
+                    }
                 }
                 // Clear the guild
                 await utils.clearGuild(guild);
