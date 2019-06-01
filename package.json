@@ -26,6 +26,7 @@
   "homepage": "https://github.com/Androz2091/discord-backup#readme",
   "dependencies": {
     "fs": "0.0.1-security",
-    "randomstring": "^1.1.5"
+    "randomstring": "^1.1.5",
+    "discord.js": "github:discordjs/discord.js#405bdb5b558eff478d0bde739cee1ee8e40c330b"
   }
 }
