@@ -14,8 +14,6 @@ function fetchOverwritesPermission(GuildChannel){
                 allow: perm.allow,
                 deny: perm.deny
             });
-        } else {
-            console.log(perm.id);
         }
     });
     return permOverwrites;
@@ -47,7 +45,7 @@ async function fetchChannelData(GuildChannel){
                         attachments: message[1].attachments,
                         embeds: message.embeds
                     });
-                };
+                }
                 channelData.messages = messages;
                 /* Return channel data */
                 resolve(channelData);
@@ -76,21 +74,21 @@ async function fetchChannelData(GuildChannel){
 async function clearGuild(guild) {
     //let roleThatGivesMeAdminPermissions = guild.me.roles.filter((r) => r.permissions.has("ADMINISTRATOR"));
     guild.roles.filter((role) => role.editable && role.id !== guild.defaultRole.id).forEach((role) => {
-        role.delete().catch(O_o=>{});
+        role.delete().catch((err) => {});
     });
     guild.channels.forEach((channel) => {
-        channel.delete().catch(O_o=>{});
+        channel.delete().catch((err) => {});
     });
     guild.emojis.forEach((emoji) => {
-        emoji.delete().catch(O_o=>{});
+        emoji.delete().catch((err) => {});
     });
     let webhooks = await guild.fetchWebhooks();
     webhooks.forEach((webhook) => {
-        webhook.delete().catch(O_o=>{})
+        webhook.delete().catch((err) => {});
     });
     let bans = await guild.fetchBans();
     bans.forEach((ban) => {
-        guild.members.unban(ban.user).catch(O_o=>{});
+        guild.members.unban(ban.user).catch((err) => {});
     });
     return;
 }
@@ -182,9 +180,9 @@ async function loadChannel(channelData, category, guild){
 }
 
 module.exports = {
-    fetchOverwritesPermission: fetchOverwritesPermission,
-    fetchChannelData: fetchChannelData,
-    clearGuild: clearGuild,
-    loadChannel: loadChannel,
-    loadCategory: loadCategory
-}
+    fetchOverwritesPermission,
+    fetchChannelData,
+    clearGuild,
+    loadChannel,
+    loadCategory
+};
