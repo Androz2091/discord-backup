@@ -85,7 +85,7 @@ module.exports = {
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 }
                 channels.categories.push(categoryData); // Update channels object
-            };
+            }
             // Gets the list of the other channels (that are not in a category) and sort them by position
             let others = guild.channels.filter((ch) => !ch.parent && ch.type !== "category").sort((a,b) => a.position-b.position);
             for(let channel of others){ // For each channel

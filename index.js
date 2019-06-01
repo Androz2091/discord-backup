@@ -97,13 +97,13 @@ module.exports = {
             guildID: guild.id
         };
         // Backup bans
-        guildData.bans = await fBackup.getBans(guild);
+        guildData.bans = await fBackup.getBans(guild).catch((err) => {});
         // Backup roles
-        guildData.roles = await fBackup.getRoles(guild);
+        guildData.roles = await fBackup.getRoles(guild).catch((err) => {});
         // Backup emojis
-        guildData.emojis = await fBackup.getEmojis(guild);
+        guildData.emojis = await fBackup.getEmojis(guild).catch((err) => {});
         // Backup channels
-        guildData.channels = await fBackup.getChannels(guild);
+        guildData.channels = await fBackup.getChannels(guild).catch((err) => {});
         // Convert Object to JSON
         let backupJSON = JSON.stringify(guildData);
         // Create backup ID
