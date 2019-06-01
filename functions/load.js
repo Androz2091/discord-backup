@@ -59,7 +59,7 @@ module.exports = {
      */
     async afk(guild, conf){
         if(conf.AFK){
-            guild.setAfkChannel(message.guild.channels.find((ch) => ch.name === conf.AFK.name));
+            guild.setAfkChannel(guild.channels.find((ch) => ch.name === conf.AFK.name));
             guild.setAfkTimeout(conf.AFK.timeout);
         }
         return true;
@@ -106,4 +106,4 @@ module.exports = {
         return true;
     }
 
-}
+};
