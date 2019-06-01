@@ -7,12 +7,12 @@ module.exports = {
      * @param {object} conf The configuration
      */
     async configuration(guild, conf){
-        guild.setName(guild.name);
-        guild.setIcon(guild.icon);
-        guild.setRegion(guild.region);
-        guild.setVerificationLevel(guild.verificationLevel);
-        guild.setDefaultMessageNotifications(guild.defaultMessageNotifications);
-        guild.setExplicitContentFilter(guild.explicitContentFilter);
+        guild.setName(conf.name);
+        guild.setIcon(conf.icon);
+        guild.setRegion(conf.region);
+        guild.setVerificationLevel(conf.verificationLevel);
+        guild.setDefaultMessageNotifications(conf.defaultMessageNotifications);
+        guild.setExplicitContentFilter(conf.explicitContentFilter);
         return true;
     },
 
