@@ -27,12 +27,8 @@ module.exports = {
      */
     async fetch(backupID){
         return new Promise(async function(resolve, reject){
-            let files = await readdir(backups); // Read "backups" directory
-            // Try to get the Json file
-            let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
-            if(file){ // If the file exists
-                let backupInformations = require(`${backups}${file}`);
-                let size = fs.statSync(`${backups}${file}`).size; // Gets the size of the file using fs
+            getBackupInformations(backupID).then((backupInformations) => {
+                let size = fs.statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
                 // Returns backup informations
                 resolve({
                     ID: backupID,
@@ -40,10 +36,9 @@ module.exports = {
                     createdTimestamp: backupInformations.createdTimestamp,
                     size: `${(size/1024/1024).toFixed(2)}MB`
                 });
-            } else {
-                // If no backup was found, return an error message
+            }).catch((err) => {
                 reject("No backup found");
-            }
+            });
         });
     },
 
@@ -106,11 +101,7 @@ module.exports = {
      */
     async load(backupID, guild){
         return new Promise(async function(resolve, reject){
-            let files = await readdir(backups); // Read "backups" directory
-            // Try to get the Json file
-            let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
-            if(file){ // If the file exists
-                let backupInformations = require(`${backups}${file}`);
+            getBackupInformations(backupID).then(async (backupInformations) => {
                 if(!guild){
                     return reject("Invalid guild");
                 }
@@ -132,10 +123,10 @@ module.exports = {
                 await fLoad.embedChannel(guild, backupInformations);
                 // Then return true
                 return resolve(true);
-            } else {
+            }).catch((err) => {
                 // If no backup was found, return an error message
                 return reject("No backup found");
-            }
+            });
         });
     },
 
@@ -163,3 +154,19 @@ module.exports = {
         return files.map((f) => f.substr(0, 5));
     }
 };
+
+async function getBackupInformations(backupID){
+    return new Promise(async function(resolve, reject){
+        let files = await readdir(backups); // Read "backups" directory
+        // Try to get the Json file
+        let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
+        if(file){ // If the file exists
+            let backupInformations = require(`${backups}${file}`);
+            // Returns backup informations
+            resolve(backupInformations);
+        } else {
+            // If no backup was found, return an error message
+            reject("No backup found");
+        }
+    });
+}
