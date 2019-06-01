@@ -15,6 +15,27 @@ const fBackup = require("./functions/backup"),
 fLoad = require("./functions/load"),
 utils = require("./functions/utils");
 
+/**
+ * This function check if a backup exists and returns its informations 
+ * @param {string} backupID
+ * @returns The backup informations
+ */
+async function getBackupInformations(backupID){
+    return new Promise(async function(resolve, reject){
+        let files = await readdir(backups); // Read "backups" directory
+        // Try to get the Json file
+        let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
+        if(file){ // If the file exists
+            let backupInformations = require(`${backups}${file}`);
+            // Returns backup informations
+            resolve(backupInformations);
+        } else {
+            // If no backup was found, return an error message
+            reject("No backup found");
+        }
+    });
+}
+
 module.exports = {
 
     /* Returns the package version */
@@ -154,19 +175,3 @@ module.exports = {
         return files.map((f) => f.substr(0, 5));
     }
 };
-
-async function getBackupInformations(backupID){
-    return new Promise(async function(resolve, reject){
-        let files = await readdir(backups); // Read "backups" directory
-        // Try to get the Json file
-        let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
-        if(file){ // If the file exists
-            let backupInformations = require(`${backups}${file}`);
-            // Returns backup informations
-            resolve(backupInformations);
-        } else {
-            // If no backup was found, return an error message
-            reject("No backup found");
-        }
-    });
-}
