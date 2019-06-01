@@ -91,8 +91,8 @@ module.exports = {
             for(let channel of others){ // For each channel
                 let channelData = await utils.fetchChannelData(channel[1]); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
-            };
+            }
             resolve(channels); // Returns the list of the channels
         });
     }
-}
+};
