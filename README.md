@@ -65,7 +65,8 @@ backup.fetch(backupID).then((backupInfos) => {
         ID: "BC5qo",
         guildID: "573098923984551952",
         createdTimestamp: 1559329309168,
-        size: "0.05MB"
+        size: "0.05MB",
+        data: {backupData}
     }
     */
 });
