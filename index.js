@@ -55,7 +55,8 @@ module.exports = {
                     ID: backupID,
                     guildID: backupInformations.guildID,
                     createdTimestamp: backupInformations.createdTimestamp,
-                    size: `${(size/1024/1024).toFixed(2)}MB`
+                    size: `${(size/1024/1024).toFixed(2)}MB`,
+                    data: backupInformations
                 });
             }).catch((err) => {
                 reject("No backup found");
