@@ -181,7 +181,7 @@ client.on("message", async message => {
         }
         // Fetch the backup
         backup.fetch(backupID).then((backupInfos) => {
-            let embed = new Discord.RichEmbed()
+            let embed = new Discord.MessageEmbed()
                 .setAuthor("Backup Informations")
                 // Display the backup ID
                 .addField("ID", backupInfos.ID, true)
