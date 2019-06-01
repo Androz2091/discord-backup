@@ -4,12 +4,12 @@
 
 Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows you to easily manage discord server backups.
 
-* Restores channels
-* Restores emojis
-* Restores bans
-* Restores permissions (for role and channels)
-* Restores messages
-* Restores the guild configuration (notification settings, name, icon)
+*   Restores channels
+*   Restores emojis
+*   Restores bans
+*   Restores permissions (for role and channels)
+*   Restores messages
+*   Restores the guild configuration (notification settings, name, icon)
 
 ## Installation
 
