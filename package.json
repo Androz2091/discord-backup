@@ -1,7 +1,7 @@
 {
   "name": "discord-backup",
   "version": "1.0.3",
-  "description": "A complete framework to facilitate server backup using discord.js",
+  "description": "A complete framework to facilitate server backup using discord.js v12",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
