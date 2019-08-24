@@ -27,7 +27,7 @@ module.exports = {
     async getRoles(guild){
         let roles = [];
         guild.roles.forEach((role) => { // For each role of the guild
-            if(role.id !== guild.defaultRole.id){ // If the role is not @everyone
+            if(role.id !== guild.roles.everyone.id){ // If the role is not @everyone
                 let rData = {
                     name: role.name,
                     color: role.hexColor,
