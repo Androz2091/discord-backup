@@ -73,7 +73,7 @@ async function fetchChannelData(GuildChannel){
  */
 async function clearGuild(guild) {
     //let roleThatGivesMeAdminPermissions = guild.me.roles.filter((r) => r.permissions.has("ADMINISTRATOR"));
-    guild.roles.filter((role) => role.editable && role.id !== guild.defaultRole.id).forEach((role) => {
+    guild.roles.filter((role) => role.editable && role.id !== guild.roles.everyone.id).forEach((role) => {
         role.delete().catch((err) => {});
     });
     guild.channels.forEach((channel) => {
