@@ -26,7 +26,7 @@ Create a backup for the server specified in the parameters!
  * @param {object} [Guild] - The discord server you want to backup
  */
 
-var backup = require("discord-backup");
+const backup = require("discord-backup");
 backup.create(Guild).then((backupID) => {
     console.log(backupID); // NSJH2
 });
@@ -42,7 +42,7 @@ Allows you to load a backup on a Discord server!
  * @param {object} [Guild] - The discord server on which you want to load the backup
  */
 
-var backup = require("discord-backup");
+const backup = require("discord-backup");
 backup.load(backupID, Guild).then(() => {
     backup.delete(backupID); // When the backup is loaded, it's recommended to delete it
 });
@@ -57,7 +57,7 @@ Fetches information from a backup
  * @param {string} [backupID] - The ID of the backup to fetch
  */
 
-var backup = require("discord-backup");
+const backup = require("discord-backup");
 backup.fetch(backupID).then((backupInfos) => {
     console.log(backupInfos);
     /*
@@ -81,7 +81,7 @@ backup.fetch(backupID).then((backupInfos) => {
  * @param {string} [backupID] - The ID of the backup to delete
  */
 
-var backup = require("discord-backup");
+const backup = require("discord-backup");
 backup.delete(backupID);
 ```
 
@@ -90,10 +90,20 @@ backup.delete(backupID);
 **Note**: `backup#list()` simply returns an array of IDs, you must fetch the ID to get complete information.
 
 ```js
-var backup = require("discord-backup");
+const backup = require("discord-backup");
 backup.list().then((backups) => {
     console.log(backups); // Expected Output [ "BC5qo", "Jdo91", ...]
 });
+```
+
+### Update storage
+
+```js
+const backup = require("discord-backup");
+backup.setStorageFolder(__dirname+"/backups/");
+await backup.create(guild); // Backup created in ./backups/
+backup.setStorageFolder(__dirname+"/my-backups/");
+await backup.create(guild); // Backup created in ./my-backups/
 ```
 
 ## Example Bot
