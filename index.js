@@ -42,6 +42,17 @@ module.exports = {
     version: require("./package.json").version,
 
     /**
+     * Change the storage path
+     * @param {string} path The folder path 
+     */
+    setStorageFolder(path){
+        backups = path;
+        if(!fs.existsSync(backups)){
+            fs.mkdirSync(backups);
+        }
+    },
+
+    /**
      * This function fetches a backyp and returns the information about it
      * @param {string} backupID The ID of the backup to fetch
      * @returns An object, the backup informations
