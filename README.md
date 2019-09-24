@@ -191,16 +191,19 @@ client.on("message", async message => {
         }
         // Fetch the backup
         backup.fetch(backupID).then((backupInfos) => {
+            const date = new Date(backupInfos.createdTimestamp);
+            const yyyy = date.getFullYear().toString(), mm = (date.getMonth()+1).toString(), dd = date.getDate().toString();
+            const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}-${(dd[1]?dd:"0"+dd[0])}`;
             let embed = new Discord.MessageEmbed()
                 .setAuthor("Backup Informations")
                 // Display the backup ID
                 .addField("ID", backupInfos.ID, true)
                 // Displays the server from which this backup comes
-                .addField("Server", backupInfos.server, true)
+                .addField("Server", backupInfos.guildID, true)
                 // Display the size (in mb) of the backup
                 .addField("Size", backupInfos.size, true)
                 // Display when the backup was created
-                .addField("Created at", timeConverter(backupInfos.createdTimestamp), true)
+                .addField("Created at", formatedDate, true)
                 .setColor("#FF0000");
             message.channel.send(embed);
         }).catch((err) => {
