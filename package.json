@@ -27,6 +27,7 @@
   "dependencies": {
     "discord.js": "github:discordjs/discord.js#405bdb5b558eff478d0bde739cee1ee8e40c330b",
     "fs": "0.0.1-security",
+    "moment": "^2.24.0",
     "randomstring": "^1.1.5"
   }
 }
