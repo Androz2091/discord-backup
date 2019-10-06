@@ -140,9 +140,16 @@ module.exports = {
      * This function loads a backup for a guild
      * @param {string} backupID The ID of the backup to load
      * @param {object} guild The guild on which the backup will be loaded
+     * @param {object} options The load options
+     * @param {boolean} [options.roles]
+     * @param {boolean} [options.channels]
+     * @param {boolean} [options.bans]
+     * @param {boolean} [options.config]
+     * @param {boolean} [options.emojis]
+     * @param {boolean} [options.clearGuild]
      * @returns If the operation is successful
      */
-    async load(backupID, guild){
+    async load(backupID, guild, options){
         return new Promise(async function(resolve, reject){
             getBackupInformations(backupID).then(async (backupInformations) => {
                 if(!guild){
@@ -156,24 +163,50 @@ module.exports = {
                         return reject("You must install and use discord.js version 12 or higher to use this package!");
                     }
                 }
-                // Clear the guild
-                await utils.clearGuild(guild);
-                // Restore guild configuration
-                await fLoad.configuration(guild, backupInformations);
-                // Restore guild roles
-                await fLoad.roles(guild, backupInformations);
-                // Restore guild channels
-                await fLoad.channels(guild, backupInformations);
-                // Restore afk channel and timeout
-                await fLoad.afk(guild, backupInformations);
-                // Restore guild emojis
-                await fLoad.emojis(guild, backupInformations);
-                // Restore guild bans
-                await fLoad.bans(guild, backupInformations);
-                // Restore embed channel
-                await fLoad.embedChannel(guild, backupInformations);
-                // Then return true
-                return resolve(true);
+
+                if(!options){
+                    // Clear the guild
+                    await utils.clearGuild(guild);
+                    // Restore guild configuration
+                    await fLoad.configuration(guild, backupInformations);
+                    // Restore guild roles
+                    await fLoad.roles(guild, backupInformations);
+                    // Restore guild channels
+                    await fLoad.channels(guild, backupInformations);
+                    // Restore afk channel and timeout
+                    await fLoad.afk(guild, backupInformations);
+                    // Restore guild emojis
+                    await fLoad.emojis(guild, backupInformations);
+                    // Restore guild bans
+                    await fLoad.bans(guild, backupInformations);
+                    // Restore embed channel
+                    await fLoad.embedChannel(guild, backupInformations);
+                    // Then return true
+                    return resolve(true);
+                }else{
+                    if(options.clearGuild){
+                        await utils.clearGuild(guild);
+                    }
+                    if(options.bans){
+                        await fLoad.bans(guild, backupInformations);
+                    }
+                    if(options.channels){
+                        await fLoad.channels(guild, backupInformations);
+                    }
+                    if(options.config){
+                        await fLoad.configuration(guild, backupInformations);
+                        await fLoad.afk(guild, backupInformations);
+                        await fLoad.embedChannel(guild, backupInformations);
+                    }
+                    if(options.roles){
+                        await fLoad.roles(guild, backupInformations);
+                    }
+                    if(options.emojis){
+                        await fLoad.emojis(guild, backupInformations);
+                    }
+                    // Then return true
+                    return resolve(true);
+                }
             }).catch((err) => {
                 // If no backup was found, return an error message
                 return reject("No backup found");
