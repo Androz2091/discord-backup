@@ -217,11 +217,34 @@ module.exports = {
             }else{
                 if(fs.existsSync(backups + newName + ".json")){
                     reject("There is already a backup with this name !")
-                }else{
+                }else{;
                     fs.renameSync(`${backups}${oldName}.json`, `${backups}${newName}.json`);
                     resolve(newName);
                 }
             }
         })
+    },
+
+    /**
+     * This function returns the list of all backup for one guild
+     * @param {string} guildID 
+     * @returns The guild backups list
+     */
+    async listGuildBackups(guildID){
+        var files = await readdir(backups);
+        
+        if(files.length < 1) return [];
+
+        var guildBackups = [];
+
+        files.forEach((f) => {
+            var file = require(`${backups}${f}`);
+
+            if(file.guildID === guildID){
+                guildBackups.push(f.split(".")[0]);
+            }
+        });
+
+        return guildBackups;
     }
 };
