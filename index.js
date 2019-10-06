@@ -3,7 +3,9 @@
 const util = require("util"),
 fs = require("fs"),
 readdir = util.promisify(require("fs").readdir),
-randomstring = require("randomstring");
+moment = require("moment");
+
+moment.locale("fr");
 
 let backups = `${__dirname}/backups/`;
 
@@ -128,7 +130,10 @@ module.exports = {
             // Convert Object to JSON
             let backupJSON = JSON.stringify(guildData);
             // Create backup ID
-            let backupID = randomstring.generate(5);
+                //let backupID = randomstring.generate(5);
+            let dateToPath = moment().format("L").split("/").join("-");
+            let hourToPath = moment().format("LT").split(":").join("-");
+            let backupID = `${guild.id}-${dateToPath}-${hourToPath}`
             // Save the backup
             fs.writeFileSync(`${backups}${backupID}.json`, backupJSON);
             // Returns ID
