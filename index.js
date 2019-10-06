@@ -203,5 +203,25 @@ module.exports = {
     async list(){
         let files = await readdir(backups); // Read "backups" directory
         return files.map((f) => f.substr(0, 5));
+    },
+
+    /**
+     * This function rename a backup
+     * @param {string} oldName The current backup name
+     * @param {string} newName The new name for the backup
+     */
+    async rename(oldName, newName){
+        return new Promise(async(resolve, reject) => {
+            if(!fs.existsSync(backups + oldName + ".json")){
+                reject("No backup found !");
+            }else{
+                if(fs.existsSync(backups + newName + ".json")){
+                    reject("There is already a backup with this name !")
+                }else{
+                    fs.renameSync(`${backups}${oldName}.json`, `${backups}${newName}.json`);
+                    resolve(newName);
+                }
+            }
+        })
     }
 };
