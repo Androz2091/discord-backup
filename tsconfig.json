@@ -5,7 +5,8 @@
         "declaration": true,
         "outDir": "./lib",
         "strict": true,
-        "strictNullChecks": false
+        "strictNullChecks": false,
+        "resolveJsonModule": true
     },
     "include": [ "src" ],
     "exclude": [ "node_modules" ]
