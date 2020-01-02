@@ -7,15 +7,18 @@ import { EmojiData } from './EmojiData';
 
 export interface BackupData {
     name: string;
-    icon?: string;
+    iconURL?: string;
+    iconBase64?: string; 
     region: string;
     verificationLevel: number;
     explicitContentFilter: number;
     defaultMessageNotifications: DefaultMessageNotifications | number;
     afk?: AfkData;
     embed: EmbedData;
-    splash?: string;
-    banner?: string;
+    splashURL?: string;
+    splashBase64?: string;
+    bannerURL?: string;
+    bannerBase64?: string;
     channels: ChannelsData;
     roles: RoleData[];
     bans: BanData[];

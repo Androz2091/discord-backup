@@ -9,6 +9,12 @@ Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows yo
 *   Even restores messages with webhooks!
 *   And restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
 
+## Changelog
+
+* Supports base64 for emojis/icon/banner backup
+* New option to save backups in your own database
+* `backup#delete()` removed in favor of `backup#remove()`
+
 ## Installation
 
 ```js
@@ -24,13 +30,15 @@ Create a backup for the server specified in the parameters!
 ```js
 /**
  * @param {object} [Guild] - The discord server you want to backup
+ * @param {object} [options] - The backup options
  */
 
 const backup = require("discord-backup");
-backup.create(Guild).then((backupID) => {
-    console.log(backupID); // NSJH2
+backup.create(Guild, options).then((backupData) => {
+    console.log(backupData.id); // NSJH2
 });
 ```
+Click [here](#create-[advanced]) to learn more about **backup options**.
 
 ### Load
 
@@ -44,7 +52,7 @@ Allows you to load a backup on a Discord server!
 
 const backup = require("discord-backup");
 backup.load(backupID, Guild).then(() => {
-    backup.delete(backupID); // When the backup is loaded, it's recommended to delete it
+    backup.remove(backupID); // When the backup is loaded, it's recommended to delete it
 });
 ```
 
@@ -62,27 +70,25 @@ backup.fetch(backupID).then((backupInfos) => {
     console.log(backupInfos);
     /*
     {
-        ID: "BC5qo",
-        guildID: "573098923984551952",
-        createdTimestamp: 1559329309168,
-        size: "0.05MB",
-        data: {backupData}
+        id: "BC5qo",
+        size: 0.05
+        data: {BackupData}
     }
     */
 });
 ```
 
-### Delete
+### Remove
 
-**Warn**: once the backup is deleted, it is impossible to recover it!
+**Warn**: once the backup is removed, it is impossible to recover it!
 
 ```js
 /**
- * @param {string} [backupID] - The ID of the backup to delete
+ * @param {string} [backupID] - The ID of the backup to remove
  */
 
 const backup = require("discord-backup");
-backup.delete(backupID);
+backup.remove(backupID);
 ```
 
 ### List
@@ -96,7 +102,9 @@ backup.list().then((backups) => {
 });
 ```
 
-### Update storage
+### SetStorageFolder
+
+Updates the storage folder to another
 
 ```js
 const backup = require("discord-backup");
@@ -105,6 +113,42 @@ await backup.create(guild); // Backup created in ./backups/
 backup.setStorageFolder(__dirname+"/my-backups/");
 await backup.create(guild); // Backup created in ./my-backups/
 ```
+
+## Advanced usage
+
+### Create [advanced]
+
+You can use more options for backup creation:
+
+```js
+const backup = require("discord-backup");
+backup.create(guild, {
+    maxMessagesPerChannel: 10,
+    jsonSave: false,
+    jsonBeautify: true,
+    doNotBackup: [ "roles",  "channels", "emojis", "bans" ],
+    saveImages: "base64"
+});
+```
+
+**maxMessagesPerChannel**: Maximum of messages to save in each channel. "0" won't restore any message.  
+**jsonSave**: Whether to save the backup into a json file. You will have to save the backup data in your own db to load it later. 
+**jsonBeautify**: Whether you want your json backup pretty formatted.  
+**doNotBackup**: Things you don't want to backup. Available items are: `roles`, `channels`, `emojis`, `bans`.  
+**saveImages**: How to save images like guild icon and emojis. Set to "url" by default, restoration may not work if the old server is deleted. So, `url` is recommended if you want to clone a server (or if you need very light backups), and `base64` if you want to backup a server. Save images as base64 creates heavier backups.
+
+### Load [advanced]
+
+As you can see, you're able to load a backup from your own data instead of from an ID:
+
+```js
+const backup = require("discord-backup");
+backup.create(backupData, guild, {
+    clearGuildBeforeRestore: true
+});
+```
+
+**clearGuildBeforeRestore**: Whether to clear the guild (roles, channels, etc... will be deleted) before the backup restoration (recommended).
 
 ## Example Bot
 
@@ -120,6 +164,7 @@ settings = {
 
 client.on("ready", () => {
     console.log("I'm ready !");
+    backup.setStorageFolder(__dirname+"/giveaways.json");
 });
 
 client.on("message", async message => {
@@ -128,7 +173,7 @@ client.on("message", async message => {
     let command = message.content.toLowerCase().slice(settings.prefix.length).split(" ")[0];
 
     // These are the arguments behind the commands.
-    let args = message.content.split(' ').slice(1);
+    let args = message.content.split(" ").slice(1);
 
     // If the message does not start with your prefix return.
     // If the user that types a message is a bot account return.
@@ -141,9 +186,12 @@ client.on("message", async message => {
             return message.channel.send(":x: | You must be an administrator of this server to request a backup!");
         }
         // Create the backup
-        backup.create(message.guild).then((backupID) => {
+        backup.create(message.guild, {
+            jsonBeautify: true
+        }).then((backupData) => {
             // And send informations to the backup owner
-            message.author.send("The backup has been created! To load it, type this command on the server of your choice: `"+settings.prefix+"load "+backupID+"`!");
+            message.author.send("The backup has been created! To load it, type this command on the server of your choice: `"+settings.prefix+"load "+backupData.id+"`!");
+            message.channel.send(":white_check_mark: Backup successfully created. The backup ID was sent in dm!");
         });
     }
 
@@ -173,7 +221,7 @@ client.on("message", async message => {
                 // Load the backup
                 backup.load(backupID, message.guild).then(() => {
                     // When the backup is loaded, delete them from the server
-                    backup.delete(backupID);
+                    backup.remove(backupID);
                 }).catch((err) => {
                     // If an error occurenced
                     return message.author.send(":x: | Sorry, an error occurenced... Please check that I have administrator permissions!");
@@ -191,19 +239,19 @@ client.on("message", async message => {
         }
         // Fetch the backup
         backup.fetch(backupID).then((backupInfos) => {
-            const date = new Date(backupInfos.createdTimestamp);
+            const date = new Date(backupInfos.data.createdTimestamp);
             const yyyy = date.getFullYear().toString(), mm = (date.getMonth()+1).toString(), dd = date.getDate().toString();
-            const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}-${(dd[1]?dd:"0"+dd[0])}`;
+            const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}/${(dd[1]?dd:"0"+dd[0])}`;
             let embed = new Discord.MessageEmbed()
                 .setAuthor("Backup Informations")
                 // Display the backup ID
-                .addField("ID", backupInfos.ID, true)
+                .addField("ID", backupInfos.id, false)
                 // Displays the server from which this backup comes
-                .addField("Server", backupInfos.guildID, true)
+                .addField("Server", backupInfos.data.guildID, false)
                 // Display the size (in mb) of the backup
-                .addField("Size", backupInfos.size, true)
+                .addField("Size", backupInfos.size, false)
                 // Display when the backup was created
-                .addField("Created at", formatedDate, true)
+                .addField("Created at", formatedDate, false)
                 .setColor("#FF0000");
             message.channel.send(embed);
         }).catch((err) => {
@@ -216,24 +264,4 @@ client.on("message", async message => {
 
 //Your secret token to log the bot in. (never share this to anyone!)
 client.login(settings.token);
-
-function timeConverter(t) {
-    var a = new Date(t);
-    var today = new Date();
-    var yesterday = new Date(Date.now() - 86400000);
-    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var year = a.getFullYear();
-    var month = months[a.getMonth()];
-    var date = a.getDate();
-    var hour = a.getHours();
-    var min = a.getMinutes();
-    if (a.setHours(0,0,0,0) == today.setHours(0,0,0,0))
-        return "today, " + hour + ":" + min;
-    else if (a.setHours(0,0,0,0) == yesterday.setHours(0,0,0,0))
-        return "yesterday, " + hour + ":" + min;
-    else if (year == today.getFullYear())
-        return date + " " + month + ", " + hour + ":" + min;
-    else
-        return date + " " + month + " " + year + ", " + hour + ":" + min;
-}
 ```

@@ -1,14 +1,14 @@
 import { Guild, Snowflake, SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === '12';
 
-import { version } from '../package.json';
+import axios from 'axios';
 
 import { existsSync, mkdirSync, readdir, statSync, unlinkSync, writeFile } from 'fs';
 import { promisify } from 'util';
 const writeFileAsync = promisify(writeFile);
 const readdirAsync = promisify(readdir);
 
-import { BackupData, BackupInfos } from './types/';
+import { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
 
 import * as createMaster from './master/create';
 import * as loadMaster from './master/load';
@@ -68,13 +68,13 @@ export const fetch = (backupID: string) => {
 /**
  * Creates a new backup and saves it to the storage
  * @param {Guild} guild The guild to backup
+ * @param {CreateOptions} [options] The backup options
  * @returns {BackupData} The backup data
  */
-export const create = async (guild: Guild) => {
+export const create = async (guild: Guild, options?: CreateOptions) => {
     return new Promise<BackupData>(async (resolve, reject) => {
         if (master) {
             const backupData: BackupData = {
-                icon: guild.iconURL(),
                 name: guild.name,
                 region: guild.region,
                 verificationLevel: guild.verificationLevel,
@@ -82,8 +82,6 @@ export const create = async (guild: Guild) => {
                 defaultMessageNotifications: guild.defaultMessageNotifications,
                 afk: guild.afkChannel ? { name: guild.afkChannel.name, timeout: guild.afkTimeout } : null,
                 embed: { enabled: guild.embedEnabled, channel: guild.embedChannel ? guild.embedChannel.name : null },
-                splash: guild.splashURL(),
-                banner: guild.banner,
                 channels: { categories: [], others: [] },
                 roles: [],
                 bans: [],
@@ -92,18 +90,52 @@ export const create = async (guild: Guild) => {
                 guildID: guild.id,
                 id: SnowflakeUtil.generate(Date.now())
             };
-            // Backup bans
-            backupData.bans = await createMaster.getBans(guild);
-            // Backup roles
-            backupData.roles = await createMaster.getRoles(guild);
-            // Backup emojis
-            backupData.emojis = await createMaster.getEmojis(guild);
-            // Backup channels
-            backupData.channels = await createMaster.getChannels(guild);
-            // Convert Object to JSON
-            const backupJSON = JSON.stringify(backupData);
-            // Save the backup
-            await writeFileAsync(`${backups}${backupData.id}.json`, backupJSON);
+            if(guild.iconURL()){
+                if(options.saveImages && options.saveImages === "base64"){
+                    let res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
+                    backupData.iconBase64 = Buffer.from(res.data, 'binary').toString('base64');
+                } else {
+                    backupData.iconURL = guild.iconURL();
+                }
+            }
+            if(guild.splashURL()){
+                if(options.saveImages && options.saveImages === "base64"){
+                    let res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
+                    backupData.splashBase64 = Buffer.from(res.data, 'binary').toString('base64');
+                } else {
+                    backupData.splashURL = guild.splashURL();
+                }
+            }
+            if(guild.bannerURL()){
+                if(options.saveImages && options.saveImages === "base64"){
+                    let res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
+                    backupData.bannerBase64 = Buffer.from(res.data, 'binary').toString('base64');
+                } else {
+                    backupData.bannerURL = guild.bannerURL();
+                }
+            }
+            if(!(options.doNotBackup || []).includes('bans')){
+                // Backup bans
+                backupData.bans = await createMaster.getBans(guild);
+            }
+            if(!(options.doNotBackup || []).includes('roles')){
+                // Backup roles
+                backupData.roles = await createMaster.getRoles(guild);
+            }
+            if(!(options.doNotBackup || []).includes('emojis')){
+                // Backup emojis
+                backupData.emojis = await createMaster.getEmojis(guild, options);
+            }
+            if(!(options.doNotBackup || []).includes('channels')){
+                // Backup channels
+                backupData.channels = await createMaster.getChannels(guild, options);
+            }
+            if(options.jsonSave === undefined || options.jsonSave){
+                // Convert Object to JSON
+                const backupJSON = (options.jsonBeautify ? JSON.stringify(backupData, null, 4) : JSON.stringify(backupData));
+                // Save the backup
+                await writeFileAsync(`${backups}${backupData.id}.json`, backupJSON, "utf-8");
+            }
             // Returns ID
             resolve(backupData);
         } else {
@@ -118,9 +150,10 @@ export const create = async (guild: Guild) => {
  * Loads a backup for a guild
  * @param {string} backupID The ID of the backup to load
  * @param {Guild} guild The guild on which the backup will be loaded
+ * @param {LoadOptions} [options] The load options
  * @returns {BackupData} The backup data
  */
-export const load = async (backupID: string, guild: Guild) => {
+export const load = async (backupID: string, guild: Guild, options?: LoadOptions) => {
     return new Promise(async (resolve, reject) => {
         if (!guild) {
             return reject('Invalid guild');
@@ -129,8 +162,10 @@ export const load = async (backupID: string, guild: Guild) => {
             .then(async backupData => {
                 if (master) {
                     try {
-                        // Clear the guild
-                        await utilMaster.clearGuild(guild);
+                        if(options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore){
+                            // Clear the guild
+                            await utilMaster.clearGuild(guild);
+                        }
                         // Restore guild configuration
                         await loadMaster.conf(guild, backupData);
                         // Restore guild roles
@@ -205,6 +240,5 @@ export default {
     fetch,
     list,
     load,
-    remove,
-    version
+    remove
 };

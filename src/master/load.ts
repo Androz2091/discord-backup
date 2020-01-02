@@ -12,8 +12,20 @@ export async function conf(guild: Guild, backupData: BackupData) {
     if (backupData.name) {
         guild.setName(backupData.name);
     }
-    if (backupData.icon) {
-        guild.setIcon(backupData.icon);
+    if (backupData.iconURL) {
+        guild.setIcon(backupData.iconURL);
+    } else if(backupData.iconBase64) {
+        guild.setIcon(backupData.iconBase64);
+    }
+    if (backupData.splashURL) {
+        guild.setSplash(backupData.splashURL);
+    } else if(backupData.splashBase64) {
+        guild.setSplash(backupData.splashBase64);
+    }
+    if (backupData.bannerURL) {
+        guild.setIcon(backupData.bannerURL);
+    } else if(backupData.bannerBase64) {
+        guild.setIcon(backupData.bannerBase64);
     }
     if (backupData.region) {
         guild.setRegion(backupData.region);

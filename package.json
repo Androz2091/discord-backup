@@ -30,7 +30,9 @@
     "url": "https://github.com/Androz2091/discord-backup/issues"
   },
   "homepage": "https://github.com/Androz2091/discord-backup#readme",
-  "dependencies": {},
+  "dependencies": {
+    "axios": "^0.19.0"
+  },
   "devDependencies": {
     "@types/node": "^13.1.2",
     "@types/ws": "^6.0.4",

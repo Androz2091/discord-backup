@@ -10,7 +10,7 @@ import {
     VoiceChannel,
     WebhookMessageOptions
 } from 'discord.js';
-import { CategoryData, ChannelPermissionsData, TextChannelData, VoiceChannelData } from '../types';
+import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData } from '../types';
 
 /**
  * Gets the permissions for a channel
@@ -60,7 +60,7 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
  * @param {TextChannel} channel The text channel
  * @returns The channel data
  */
-export async function fetchTextChannelData(channel: TextChannel) {
+export async function fetchTextChannelData(channel: TextChannel, options: CreateOptions) {
     return new Promise<TextChannelData>(async resolve => {
         const channelData: TextChannelData = {
             type: 'text',
@@ -72,13 +72,13 @@ export async function fetchTextChannelData(channel: TextChannel) {
             permissions: fetchChannelPermissions(channel),
             messages: []
         };
-        /* Fetch last 100 channel messages */
+        /* Fetch channel messages */
+        let messageCount = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
         channel.messages
-            .fetch({ limit: 10 })
+            .fetch({ limit: messageCount })
             .then((fetched: Collection<Snowflake, Message>) => {
-                const messages = [];
                 fetched.forEach(msg => {
-                    if (!msg.author) {
+                    if (!msg.author || channelData.messages.length >= messageCount) {
                         return;
                     }
                     channelData.messages.push({
