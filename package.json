@@ -4,7 +4,8 @@
   "description": "A complete framework to facilitate server backup using discord.js v12",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -25,8 +26,11 @@
   },
   "homepage": "https://github.com/Androz2091/discord-backup#readme",
   "dependencies": {
-    "discord.js": "github:discordjs/discord.js#405bdb5b558eff478d0bde739cee1ee8e40c330b",
-    "fs": "0.0.1-security",
+    "discord.js": "github:discordjs/discord.js",
     "randomstring": "^1.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.2",
+    "@types/ws": "^6.0.4"
   }
 }
