@@ -1,5 +1,7 @@
-import { version, Guild, SnowflakeUtil, Snowflake } from 'discord.js';
-const master: Boolean = version.split('.')[0] === "12";
+import { version as djsVersion, Guild, SnowflakeUtil, Snowflake } from 'discord.js';
+const master: Boolean = djsVersion.split('.')[0] === "12";
+
+import { version } from '../package.json';
 
 import { writeFile, readdir, existsSync, mkdirSync, statSync, unlinkSync } from 'fs';
 import { promisify } from 'util';
@@ -174,24 +176,20 @@ export async function list(){
     return files.map((f) => f.split('.')[0]);
 };
 
-// Returns the package version
-export version from './package.json';
-
 /**
  * Change the storage path
  * @param {string} path The folder path 
  */
-setStorageFolder(path){
+export async function setStorageFolder(path: string){
     backups = path;
-    if(!fs.existsSync(backups)){
-        fs.mkdirSync(backups);
-    }
-},
+    if(!existsSync(backups)) mkdirSync(backups);
+};
 
 export default {
     create,
     load,
     fetch,
     remove,
-    list
+    list,
+    version
 };
