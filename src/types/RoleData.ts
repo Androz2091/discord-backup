@@ -5,4 +5,4 @@ export interface RoleData {
     permissions: number;
     mentionable: boolean;
     position: number;
-};
+}

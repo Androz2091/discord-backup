@@ -1,16 +1,16 @@
 import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
-import { BanData, CategoryData, ChannelsData, EmojiData, RoleData, TextChannelData, VoiceChannelData} from '../types';
+import { BanData, CategoryData, ChannelsData, EmojiData, RoleData, TextChannelData, VoiceChannelData } from '../types';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 
 /**
  * Returns an array with the banned members of the guild
  * @param {Guild} guild The Discord guild
- * @returns {Promise<BanData[]>} The banned members 
+ * @returns {Promise<BanData[]>} The banned members
  */
-export async function getBans(guild: Guild){
+export async function getBans(guild: Guild) {
     const bans: BanData[] = [];
     const cases = await guild.fetchBans(); // Gets the list of the banned members
-    cases.forEach((ban) => {
+    cases.forEach(ban => {
         bans.push({
             id: ban.user.id, // Banned member ID
             reason: ban.reason // Ban reason
@@ -24,10 +24,11 @@ export async function getBans(guild: Guild){
  * @param {Guild} guild The discord guild
  * @returns {Promise<RoleData[]>} The roles of the guild
  */
-export async function getRoles(guild: Guild){
+export async function getRoles(guild: Guild) {
     const roles: RoleData[] = [];
-    guild.roles.forEach((role) => {
-        if(role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')){ // If the role is not @everyone
+    guild.roles.forEach(role => {
+        if (role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')) {
+            // If the role is not @everyone
             const roleData = {
                 name: role.name,
                 color: role.hexColor,
@@ -47,9 +48,9 @@ export async function getRoles(guild: Guild){
  * @param {Guild} guild The discord guild
  * @returns {Promise<EmojiData[]>} The emojis of the guild
  */
-export async function getEmojis(guild: Guild){
+export async function getEmojis(guild: Guild) {
     const emojis: EmojiData[] = [];
-    guild.emojis.forEach((emoji) => {
+    guild.emojis.forEach(emoji => {
         const eData = {
             name: emoji.name,
             url: emoji.url
@@ -64,15 +65,18 @@ export async function getEmojis(guild: Guild){
  * @param {Guild} guild The discord guild
  * @returns {ChannelData[]} The channels of the guild
  */
-export async function getChannels(guild: Guild){
-    return new Promise<ChannelsData>(async (resolve) => {
+export async function getChannels(guild: Guild) {
+    return new Promise<ChannelsData>(async resolve => {
         const channels: ChannelsData = {
             categories: [],
             others: []
         };
         // Gets the list of the categories and sort them by position
-        const categories = guild.channels.filter((ch) => ch.type === 'category').sort((a, b) => a.position - b.position).array() as CategoryChannel[];
-        for(const category of categories){
+        const categories = guild.channels
+            .filter(ch => ch.type === 'category')
+            .sort((a, b) => a.position - b.position)
+            .array() as CategoryChannel[];
+        for (const category of categories) {
             const categoryData: CategoryData = {
                 name: category.name, // The name of the category
                 permissions: fetchChannelPermissions(category), // The overwrite permissions of the category
@@ -80,25 +84,30 @@ export async function getChannels(guild: Guild){
             };
             // Gets the children channels of the category and sort them by position
             const children = category.children.sort((a, b) => a.position - b.position).array();
-            for(const child of children){ // For each child channel
-                if(child.type === 'text'){
-                    const channelData: TextChannelData = await fetchTextChannelData((child as TextChannel)); // Gets the channel data
+            for (const child of children) {
+                // For each child channel
+                if (child.type === 'text') {
+                    const channelData: TextChannelData = await fetchTextChannelData(child as TextChannel); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 } else {
-                    const channelData: VoiceChannelData = await fetchVoiceChannelData((child as VoiceChannel)); // Gets the channel data
+                    const channelData: VoiceChannelData = await fetchVoiceChannelData(child as VoiceChannel); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 }
             }
             channels.categories.push(categoryData); // Update channels object
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
-        const others = guild.channels.filter((ch) => !ch.parent && ch.type !== 'category').sort((a, b) => a.position - b.position).array();
-        for(const channel of others){ // For each channel
-            if(channel.type === 'text'){
-                const channelData: TextChannelData = await fetchTextChannelData((channel as TextChannel)); // Gets the channel data
+        const others = guild.channels
+            .filter(ch => !ch.parent && ch.type !== 'category')
+            .sort((a, b) => a.position - b.position)
+            .array();
+        for (const channel of others) {
+            // For each channel
+            if (channel.type === 'text') {
+                const channelData: TextChannelData = await fetchTextChannelData(channel as TextChannel); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             } else {
-                const channelData: VoiceChannelData = await fetchVoiceChannelData((channel as VoiceChannel)); // Gets the channel data
+                const channelData: VoiceChannelData = await fetchVoiceChannelData(channel as VoiceChannel); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             }
         }

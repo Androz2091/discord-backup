@@ -1,9 +1,9 @@
-import { DefaultMessageNotifications, RoleData, Snowflake } from "discord.js";
-import { AfkData } from "./AfkData";
-import { BanData } from "./BanData";
-import { ChannelsData } from "./ChannelsData";
-import { EmbedData } from "./EmbedData";
-import { EmojiData } from "./EmojiData";
+import { DefaultMessageNotifications, RoleData, Snowflake } from 'discord.js';
+import { AfkData } from './AfkData';
+import { BanData } from './BanData';
+import { ChannelsData } from './ChannelsData';
+import { EmbedData } from './EmbedData';
+import { EmojiData } from './EmojiData';
 
 export interface BackupData {
     name: string;
@@ -11,7 +11,7 @@ export interface BackupData {
     region: string;
     verificationLevel: number;
     explicitContentFilter: number;
-    defaultMessageNotifications: DefaultMessageNotifications|number;
+    defaultMessageNotifications: DefaultMessageNotifications | number;
     afk?: AfkData;
     embed: EmbedData;
     splash?: string;
@@ -23,4 +23,4 @@ export interface BackupData {
     createdTimestamp: number;
     guildID: string;
     id: Snowflake;
-};
+}

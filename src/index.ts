@@ -1,5 +1,5 @@
 import { Guild, Snowflake, SnowflakeUtil, version as djsVersion } from 'discord.js';
-const master: boolean = djsVersion.split('.')[0] === "12";
+const master: boolean = djsVersion.split('.')[0] === '12';
 
 import { version } from '../package.json';
 
@@ -15,12 +15,12 @@ import * as loadMaster from './master/load';
 import * as utilMaster from './master/util';
 
 let backups = `${__dirname}/backups/`;
-if(!existsSync(backups)){
+if (!existsSync(backups)) {
     mkdirSync(backups);
 }
 
 /**
- * Checks if a backup exists and returns its data 
+ * Checks if a backup exists and returns its data
  * @param {string} backupID
  * @returns {BackupData} The backup data
  */
@@ -28,14 +28,15 @@ const getBackupData = async (backupID: string) => {
     return new Promise<BackupData>(async (resolve, reject) => {
         const files = await readdirAsync(backups); // Read "backups" directory
         // Try to get the json file
-        const file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
-        if(file){ // If the file exists
+        const file = files.filter(f => f.split('.').pop() === 'json').find(f => f === `${backupID}.json`);
+        if (file) {
+            // If the file exists
             const backupData: BackupData = require(`${backups}${file}`);
             // Returns backup informations
             resolve(backupData);
         } else {
             // If no backup was found, return an error message
-            reject("No backup found");
+            reject('No backup found');
         }
     });
 };
@@ -47,18 +48,20 @@ const getBackupData = async (backupID: string) => {
  */
 export const fetch = (backupID: string) => {
     return new Promise<BackupInfos>(async (resolve, reject) => {
-        getBackupData(backupID).then((backupData) => {
-            const size = statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
-            const backupInfos: BackupInfos = {
-                data: backupData,
-                id: backupID,
-                size: Number((size/1024/1024).toFixed(2))
-            };
-            // Returns backup informations
-            resolve(backupInfos);
-        }).catch((err) => {
-            reject("No backup found");
-        });
+        getBackupData(backupID)
+            .then(backupData => {
+                const size = statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
+                const backupInfos: BackupInfos = {
+                    data: backupData,
+                    id: backupID,
+                    size: Number((size / 1024 / 1024).toFixed(2))
+                };
+                // Returns backup informations
+                resolve(backupInfos);
+            })
+            .catch(err => {
+                reject('No backup found');
+            });
     });
 };
 
@@ -69,7 +72,7 @@ export const fetch = (backupID: string) => {
  */
 export const create = async (guild: Guild) => {
     return new Promise<BackupData>(async (resolve, reject) => {
-        if(master){
+        if (master) {
             const backupData: BackupData = {
                 icon: guild.iconURL(),
                 name: guild.name,
@@ -77,11 +80,11 @@ export const create = async (guild: Guild) => {
                 verificationLevel: guild.verificationLevel,
                 explicitContentFilter: guild.explicitContentFilter,
                 defaultMessageNotifications: guild.defaultMessageNotifications,
-                afk: (guild.afkChannel ? { name: guild.afkChannel.name, timeout: guild.afkTimeout } : null),
-                embed: { enabled: guild.embedEnabled, channel: (guild.embedChannel ? guild.embedChannel.name : null) },
+                afk: guild.afkChannel ? { name: guild.afkChannel.name, timeout: guild.afkTimeout } : null,
+                embed: { enabled: guild.embedEnabled, channel: guild.embedChannel ? guild.embedChannel.name : null },
                 splash: guild.splashURL(),
                 banner: guild.banner,
-                channels: { categories:[], others:[] },
+                channels: { categories: [], others: [] },
                 roles: [],
                 bans: [],
                 emojis: [],
@@ -104,7 +107,9 @@ export const create = async (guild: Guild) => {
             // Returns ID
             resolve(backupData);
         } else {
-            reject('Only master branch of discord.js library is supported for now. Install it using \'npm install discordjs/discord.js\'.');
+            reject(
+                "Only master branch of discord.js library is supported for now. Install it using 'npm install discordjs/discord.js'."
+            );
         }
     });
 };
@@ -117,40 +122,44 @@ export const create = async (guild: Guild) => {
  */
 export const load = async (backupID: string, guild: Guild) => {
     return new Promise(async (resolve, reject) => {
-        if(!guild){
-            return reject("Invalid guild");
+        if (!guild) {
+            return reject('Invalid guild');
         }
-        getBackupData(backupID).then(async (backupData) => {
-            if(master){
-                try {
-                    // Clear the guild
-                    await utilMaster.clearGuild(guild);
-                    // Restore guild configuration
-                    await loadMaster.conf(guild, backupData);
-                    // Restore guild roles
-                    await loadMaster.roles(guild, backupData);
-                    // Restore guild channels
-                    await loadMaster.channels(guild, backupData);
-                    // Restore afk channel and timeout
-                    await loadMaster.afk(guild, backupData);
-                    // Restore guild emojis
-                    await loadMaster.emojis(guild, backupData);
-                    // Restore guild bans
-                    await loadMaster.bans(guild, backupData);
-                    // Restore embed channel
-                    await loadMaster.embedChannel(guild, backupData);
-                } catch(e) {
-                    return reject(e);
+        getBackupData(backupID)
+            .then(async backupData => {
+                if (master) {
+                    try {
+                        // Clear the guild
+                        await utilMaster.clearGuild(guild);
+                        // Restore guild configuration
+                        await loadMaster.conf(guild, backupData);
+                        // Restore guild roles
+                        await loadMaster.roles(guild, backupData);
+                        // Restore guild channels
+                        await loadMaster.channels(guild, backupData);
+                        // Restore afk channel and timeout
+                        await loadMaster.afk(guild, backupData);
+                        // Restore guild emojis
+                        await loadMaster.emojis(guild, backupData);
+                        // Restore guild bans
+                        await loadMaster.bans(guild, backupData);
+                        // Restore embed channel
+                        await loadMaster.embedChannel(guild, backupData);
+                    } catch (e) {
+                        return reject(e);
+                    }
+                    // Then return the backup data
+                    return resolve(backupData);
+                } else {
+                    reject(
+                        "Only master branch of discord.js library is supported for now. Install it using 'npm install discordjs/discord.js'."
+                    );
                 }
-                // Then return the backup data
-                return resolve(backupData);
-            } else {
-                reject('Only master branch of discord.js library is supported for now. Install it using \'npm install discordjs/discord.js\'.');
-            }
-        }).catch((err) => {
-            // If no backup was found, return an error message
-            return reject("No backup found");
-        });
+            })
+            .catch(err => {
+                // If no backup was found, return an error message
+                return reject('No backup found');
+            });
     });
 };
 
@@ -165,8 +174,8 @@ export const remove = async (backupID: string) => {
             require(`${backups}${backupID}.json`);
             unlinkSync(`${backups}${backupID}.json`);
             resolve();
-        } catch(error){
-            reject("Backup not found");
+        } catch (error) {
+            reject('Backup not found');
         }
     });
 };
@@ -177,16 +186,16 @@ export const remove = async (backupID: string) => {
  */
 export const list = async () => {
     const files = await readdirAsync(backups); // Read "backups" directory
-    return files.map((f) => f.split('.')[0]);
+    return files.map(f => f.split('.')[0]);
 };
 
 /**
  * Change the storage path
- * @param {string} path The folder path 
+ * @param {string} path The folder path
  */
 export const setStorageFolder = (path: string) => {
     backups = path;
-    if(!existsSync(backups)){
+    if (!existsSync(backups)) {
         mkdirSync(backups);
     }
 };
