@@ -1,6 +1,6 @@
+import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
 import { BanData, CategoryData, ChannelsData, EmojiData, RoleData, TextChannelData, VoiceChannelData} from '../types';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
-import { Guild, TextChannel, VoiceChannel, CategoryChannel } from 'discord.js';
 
 /**
  * Returns an array with the banned members of the guild
@@ -48,9 +48,9 @@ export async function getRoles(guild: Guild){
  * @returns {Promise<EmojiData[]>} The emojis of the guild
  */
 export async function getEmojis(guild: Guild){
-    let emojis: EmojiData[] = [];
+    const emojis: EmojiData[] = [];
     guild.emojis.forEach((emoji) => {
-        let eData = {
+        const eData = {
             name: emoji.name,
             url: emoji.url
         };
@@ -65,40 +65,40 @@ export async function getEmojis(guild: Guild){
  * @returns {ChannelData[]} The channels of the guild
  */
 export async function getChannels(guild: Guild){
-    return new Promise<ChannelsData>(async function(resolve){
+    return new Promise<ChannelsData>(async (resolve) => {
         const channels: ChannelsData = {
             categories: [],
             others: []
         };
         // Gets the list of the categories and sort them by position
         const categories = guild.channels.filter((ch) => ch.type === 'category').sort((a, b) => a.position - b.position).array() as CategoryChannel[];
-        for(let category of categories){
-            let categoryData: CategoryData = {
+        for(const category of categories){
+            const categoryData: CategoryData = {
                 name: category.name, // The name of the category
                 permissions: fetchChannelPermissions(category), // The overwrite permissions of the category
                 children: [] // The children channels of the category
             };
             // Gets the children channels of the category and sort them by position
-            let children = category.children.sort((a, b) => a.position - b.position).array();
-            for(let child of children){ // For each child channel
+            const children = category.children.sort((a, b) => a.position - b.position).array();
+            for(const child of children){ // For each child channel
                 if(child.type === 'text'){
-                    let channelData: TextChannelData = await fetchTextChannelData((child as TextChannel)); // Gets the channel data
+                    const channelData: TextChannelData = await fetchTextChannelData((child as TextChannel)); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 } else {
-                    let channelData: VoiceChannelData = await fetchVoiceChannelData((child as VoiceChannel)); // Gets the channel data
+                    const channelData: VoiceChannelData = await fetchVoiceChannelData((child as VoiceChannel)); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 }
             }
             channels.categories.push(categoryData); // Update channels object
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
-        let others = guild.channels.filter((ch) => !ch.parent && ch.type !== 'category').sort((a, b) => a.position - b.position).array();
-        for(let channel of others){ // For each channel
+        const others = guild.channels.filter((ch) => !ch.parent && ch.type !== 'category').sort((a, b) => a.position - b.position).array();
+        for(const channel of others){ // For each channel
             if(channel.type === 'text'){
-                let channelData: TextChannelData = await fetchTextChannelData((channel as TextChannel)); // Gets the channel data
+                const channelData: TextChannelData = await fetchTextChannelData((channel as TextChannel)); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             } else {
-                let channelData: VoiceChannelData = await fetchVoiceChannelData((channel as VoiceChannel)); // Gets the channel data
+                const channelData: VoiceChannelData = await fetchVoiceChannelData((channel as VoiceChannel)); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             }
         }

@@ -5,6 +5,9 @@
       "no-unused-expression": true
     },
     "rules": {
+        "object-literal-sort-keys": false,
+        "interface-name": false,
+        "no-empty": false
     },
     "rulesDirectory": []
 }

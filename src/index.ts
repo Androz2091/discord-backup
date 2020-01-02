@@ -1,9 +1,9 @@
-import { version as djsVersion, Guild, Snowflake, SnowflakeUtil } from 'discord.js';
+import { Guild, Snowflake, SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === "12";
 
 import { version } from '../package.json';
 
-import { writeFile, readdir, existsSync, mkdirSync, statSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, readdir, statSync, unlinkSync, writeFile } from 'fs';
 import { promisify } from 'util';
 const writeFileAsync = promisify(writeFile);
 const readdirAsync = promisify(readdir);
@@ -25,7 +25,7 @@ if(!existsSync(backups)){
  * @returns {BackupData} The backup data
  */
 const getBackupData = async (backupID: string) => {
-    return new Promise<BackupData>(async function(resolve, reject){
+    return new Promise<BackupData>(async (resolve, reject) => {
         const files = await readdirAsync(backups); // Read "backups" directory
         // Try to get the json file
         const file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
@@ -46,7 +46,7 @@ const getBackupData = async (backupID: string) => {
  * @returns {BackupInfor} The backup data
  */
 export const fetch = (backupID: string) => {
-    return new Promise<BackupInfos>(async function(resolve, reject){
+    return new Promise<BackupInfos>(async (resolve, reject) => {
         getBackupData(backupID).then((backupData) => {
             const size = statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
             const backupInfos: BackupInfos = {
@@ -116,7 +116,7 @@ export const create = async (guild: Guild) => {
  * @returns {BackupData} The backup data
  */
 export const load = async (backupID: string, guild: Guild) => {
-    return new Promise(async function(resolve, reject){
+    return new Promise(async (resolve, reject) => {
         if(!guild){
             return reject("Invalid guild");
         }

@@ -9,12 +9,24 @@ import { loadCategory, loadChannel } from "./util";
  * @returns {Promise<void>}
  */
 export async function conf(guild: Guild, backupData: BackupData){
-    if(backupData.name) guild.setName(backupData.name);
-    if(backupData.icon) guild.setIcon(backupData.icon);
-    if(backupData.region) guild.setRegion(backupData.region);
-    if(backupData.verificationLevel) guild.setVerificationLevel(backupData.verificationLevel);
-    if(backupData.defaultMessageNotifications) guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications);
-    if(backupData.explicitContentFilter) guild.setExplicitContentFilter(backupData.explicitContentFilter);
+    if(backupData.name){
+        guild.setName(backupData.name);
+    }
+    if(backupData.icon){
+        guild.setIcon(backupData.icon);
+    }
+    if(backupData.region){
+        guild.setRegion(backupData.region);
+    }
+    if(backupData.verificationLevel){
+        guild.setVerificationLevel(backupData.verificationLevel);
+    }
+    if(backupData.defaultMessageNotifications){
+        guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications);
+    }
+    if(backupData.explicitContentFilter){
+        guild.setExplicitContentFilter(backupData.explicitContentFilter);
+    }
     return;
 };
 

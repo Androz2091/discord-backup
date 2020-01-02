@@ -1,8 +1,8 @@
 import { DefaultMessageNotifications, RoleData, Snowflake } from "discord.js";
 import { AfkData } from "./AfkData";
-import { EmbedData } from "./EmbedData";
-import { ChannelsData } from "./ChannelsData";
 import { BanData } from "./BanData";
+import { ChannelsData } from "./ChannelsData";
+import { EmbedData } from "./EmbedData";
 import { EmojiData } from "./EmojiData";
 
 export interface BackupData {

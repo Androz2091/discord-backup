@@ -1,4 +1,4 @@
-import { Collection, Message, Snowflake, TextChannel, VoiceChannel, CategoryChannel, Guild, OverwriteData, GuildCreateChannelOptions, WebhookMessageOptions } from 'discord.js';
+import { CategoryChannel, Collection, Guild, GuildCreateChannelOptions, Message, OverwriteData, Snowflake, TextChannel, VoiceChannel, WebhookMessageOptions } from 'discord.js';
 import { CategoryData, ChannelPermissionsData, TextChannelData, VoiceChannelData } from '../types';
 
 /**
@@ -7,9 +7,9 @@ import { CategoryData, ChannelPermissionsData, TextChannelData, VoiceChannelData
  * @returns {ChannelPermissionsData[]} The permissions
  */
 export function fetchChannelPermissions(channel: TextChannel|VoiceChannel|CategoryChannel){
-    let permissions: ChannelPermissionsData[] = [];
+    const permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites.filter((p) => p.type === 'role').forEach((perm) => { // For each overwrites permission
-        let role = channel.guild.roles.get(perm.id);
+        const role = channel.guild.roles.get(perm.id);
         if(role){
             permissions.push({
                 roleName: role.name,
@@ -27,8 +27,8 @@ export function fetchChannelPermissions(channel: TextChannel|VoiceChannel|Catego
  * @returns The channel data
  */
 export async function fetchVoiceChannelData(channel: VoiceChannel){
-    return new Promise<VoiceChannelData>(async function(resolve){
-        let channelData: VoiceChannelData = {
+    return new Promise<VoiceChannelData>(async (resolve) => {
+        const channelData: VoiceChannelData = {
             type: 'voice',
             name: channel.name,
             bitrate: channel.bitrate,
@@ -47,8 +47,8 @@ export async function fetchVoiceChannelData(channel: VoiceChannel){
  * @returns The channel data
  */
 export async function fetchTextChannelData(channel: TextChannel){
-    return new Promise<TextChannelData>(async function(resolve){
-        let channelData: TextChannelData = {
+    return new Promise<TextChannelData>(async (resolve) => {
+        const channelData: TextChannelData = {
             type: 'text',
             name: channel.name,
             nsfw: channel.nsfw,
@@ -60,9 +60,9 @@ export async function fetchTextChannelData(channel: TextChannel){
         };
         /* Fetch last 100 channel messages */
         channel.messages.fetch({ limit: 10 }).then((fetched: Collection<Snowflake, Message>) => {
-            let messages = [];
+            const messages = [];
             fetched.forEach((msg) => {
-                if(!msg.author) return;
+                if(!msg.author) { return; }
                 channelData.messages.push({
                     username: msg.author.username,
                     avatar: msg.author.displayAvatarURL(),
@@ -87,9 +87,9 @@ export async function fetchTextChannelData(channel: TextChannel){
 export async function loadCategory(categoryData: CategoryData, guild: Guild){
     return new Promise<CategoryChannel>((resolve) => {
         guild.channels.create(categoryData.name, { type: "category" }).then(async (category) => { // When the category is created
-            let finalPermissions: OverwriteData[] = [];
+            const finalPermissions: OverwriteData[] = [];
             categoryData.permissions.forEach((perm) => {
-                let role = guild.roles.find((r) => r.name === perm.roleName);
+                const role = guild.roles.find((r) => r.name === perm.roleName);
                 if(role){
                     finalPermissions.push({
                         id: role.id,
@@ -114,8 +114,8 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild){
  * @returns The channel
  */
 export async function loadChannel(channelData: TextChannelData|VoiceChannelData, guild: Guild, category?: CategoryChannel){
-    return new Promise(async function(resolve, reject){
-        let createOptions: GuildCreateChannelOptions = {
+    return new Promise(async (resolve, reject) => {
+        const createOptions: GuildCreateChannelOptions = {
             type: null,
             parent: category
         };
@@ -130,9 +130,9 @@ export async function loadChannel(channelData: TextChannelData|VoiceChannelData,
         }
         guild.channels.create(channelData.name, createOptions).then(async (channel) => {
             /* Update channel permissions */
-            let finalPermissions: OverwriteData[] = [];
+            const finalPermissions: OverwriteData[] = [];
             channelData.permissions.forEach((perm) => {
-                let role = guild.roles.find((r) => r.name === perm.roleName);
+                const role = guild.roles.find((r) => r.name === perm.roleName);
                 if(role){
                     finalPermissions.push({
                         id: role.id,
@@ -149,8 +149,8 @@ export async function loadChannel(channelData: TextChannelData|VoiceChannelData,
                 (channel as TextChannel).createWebhook("MessagesBackup", {
                     avatar: channel.client.user.displayAvatarURL()
                 }).then(async (webhook) => {
-                    let messages = (channelData as TextChannelData).messages.filter((m) => m.content.length > 0).reverse();
-                    for(let msg of messages){
+                    const messages = (channelData as TextChannelData).messages.filter((m) => m.content.length > 0).reverse();
+                    for(const msg of messages){
                         webhook.send(msg.content, {
                             username: msg.username,
                             avatarURL: msg.avatar
@@ -180,11 +180,11 @@ export async function clearGuild(guild: Guild) {
     guild.emojis.forEach((emoji) => {
         emoji.delete().catch(() => {});
     });
-    let webhooks = await guild.fetchWebhooks();
+    const webhooks = await guild.fetchWebhooks();
     webhooks.forEach((webhook) => {
         webhook.delete().catch(() => {});
     });
-    let bans = await guild.fetchBans();
+    const bans = await guild.fetchBans();
     bans.forEach((ban) => {
         guild.members.unban(ban.user).catch((err) => {});
     });
