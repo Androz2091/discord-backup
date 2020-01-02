@@ -5,11 +5,11 @@ import { Guild, TextChannel, VoiceChannel, CategoryChannel } from 'discord.js';
 /**
  * Returns an array with the banned members of the guild
  * @param {Guild} guild The Discord guild
- * @returns {Promise<Array<BanData>>} The banned members 
+ * @returns {Promise<BanData[]>} The banned members 
  */
 export async function getBans(guild: Guild){
-    let bans: Array<BanData> = [];
-    let cases = await guild.fetchBans(); // Gets the list of the banned members
+    const bans: BanData[] = [];
+    const cases = await guild.fetchBans(); // Gets the list of the banned members
     cases.forEach((ban) => {
         bans.push({
             id: ban.user.id, // Banned member ID
@@ -22,13 +22,13 @@ export async function getBans(guild: Guild){
 /**
  * Returns an array with the roles of the guild
  * @param {Guild} guild The discord guild
- * @returns {Promise<Array<RoleData>>} The roles of the guild
+ * @returns {Promise<RoleData[]>} The roles of the guild
  */
 export async function getRoles(guild: Guild){
-    let roles: Array<RoleData> = [];
+    const roles: RoleData[] = [];
     guild.roles.forEach((role) => {
         if(role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')){ // If the role is not @everyone
-            let roleData = {
+            const roleData = {
                 name: role.name,
                 color: role.hexColor,
                 hoist: role.hoist,
@@ -45,10 +45,10 @@ export async function getRoles(guild: Guild){
 /**
  * Returns an array with the emojis of the guild
  * @param {Guild} guild The discord guild
- * @returns {Promise<Array<EmojiData>>} The emojis of the guild
+ * @returns {Promise<EmojiData[]>} The emojis of the guild
  */
 export async function getEmojis(guild: Guild){
-    let emojis: Array<EmojiData> = [];
+    let emojis: EmojiData[] = [];
     guild.emojis.forEach((emoji) => {
         let eData = {
             name: emoji.name,
@@ -62,7 +62,7 @@ export async function getEmojis(guild: Guild){
 /**
  * Returns an array with the channels of the guild
  * @param {Guild} guild The discord guild
- * @returns {Array<ChannelData>} The channels of the guild
+ * @returns {ChannelData[]} The channels of the guild
  */
 export async function getChannels(guild: Guild){
     return new Promise<ChannelsData>(async function(resolve){
@@ -71,7 +71,7 @@ export async function getChannels(guild: Guild){
             others: []
         };
         // Gets the list of the categories and sort them by position
-        const categories = guild.channels.filter((ch) => ch.type === 'category').sort((a, b) => a.position - b.position).array() as Array<CategoryChannel>;
+        const categories = guild.channels.filter((ch) => ch.type === 'category').sort((a, b) => a.position - b.position).array() as CategoryChannel[];
         for(let category of categories){
             let categoryData: CategoryData = {
                 name: category.name, // The name of the category

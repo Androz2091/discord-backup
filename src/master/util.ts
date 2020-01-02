@@ -4,10 +4,10 @@ import { CategoryData, ChannelPermissionsData, TextChannelData, VoiceChannelData
 /**
  * Gets the permissions for a channel
  * @param {GuildChannel} channel The channel
- * @returns {Array<ChannelPermissionsData>} The permissions
+ * @returns {ChannelPermissionsData[]} The permissions
  */
 export function fetchChannelPermissions(channel: TextChannel|VoiceChannel|CategoryChannel){
-    let permissions: Array<ChannelPermissionsData> = [];
+    let permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites.filter((p) => p.type === 'role').forEach((perm) => { // For each overwrites permission
         let role = channel.guild.roles.get(perm.id);
         if(role){
@@ -87,7 +87,7 @@ export async function fetchTextChannelData(channel: TextChannel){
 export async function loadCategory(categoryData: CategoryData, guild: Guild){
     return new Promise<CategoryChannel>((resolve) => {
         guild.channels.create(categoryData.name, { type: "category" }).then(async (category) => { // When the category is created
-            let finalPermissions: Array<OverwriteData> = [];
+            let finalPermissions: OverwriteData[] = [];
             categoryData.permissions.forEach((perm) => {
                 let role = guild.roles.find((r) => r.name === perm.roleName);
                 if(role){
@@ -130,7 +130,7 @@ export async function loadChannel(channelData: TextChannelData|VoiceChannelData,
         }
         guild.channels.create(channelData.name, createOptions).then(async (channel) => {
             /* Update channel permissions */
-            let finalPermissions: Array<OverwriteData> = [];
+            let finalPermissions: OverwriteData[] = [];
             channelData.permissions.forEach((perm) => {
                 let role = guild.roles.find((r) => r.name === perm.roleName);
                 if(role){

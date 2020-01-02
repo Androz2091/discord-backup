@@ -17,9 +17,9 @@ export interface BackupData {
     splash?: string;
     banner?: string;
     channels: ChannelsData;
-    roles: Array<RoleData>;
-    bans: Array<BanData>;
-    emojis: Array<EmojiData>;
+    roles: RoleData[];
+    bans: BanData[];
+    emojis: EmojiData[];
     createdTimestamp: number;
     guildID: string;
     id: Snowflake;

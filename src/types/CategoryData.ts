@@ -4,6 +4,6 @@ import { VoiceChannelData } from "./VoiceChannelData";
 
 export interface CategoryData {
     name: string;
-    permissions: Array<ChannelPermissionsData>;
+    permissions: ChannelPermissionsData[];
     children: Array<TextChannelData|VoiceChannelData>;
 }

@@ -1,5 +1,5 @@
-import { version as djsVersion, Guild, SnowflakeUtil, Snowflake } from 'discord.js';
-const master: Boolean = djsVersion.split('.')[0] === "12";
+import { version as djsVersion, Guild, Snowflake, SnowflakeUtil } from 'discord.js';
+const master: boolean = djsVersion.split('.')[0] === "12";
 
 import { version } from '../package.json';
 
@@ -15,22 +15,24 @@ import * as loadMaster from './master/load';
 import * as utilMaster from './master/util';
 
 let backups = `${__dirname}/backups/`;
-if(!existsSync(backups)) mkdirSync(backups);
+if(!existsSync(backups)){
+    mkdirSync(backups);
+}
 
 /**
  * Checks if a backup exists and returns its data 
  * @param {string} backupID
  * @returns {BackupData} The backup data
  */
-async function getBackupData(backupID: string){
+const getBackupData = async (backupID: string) => {
     return new Promise<BackupData>(async function(resolve, reject){
-        let files = await readdirAsync(backups); // Read "backups" directory
-        // Try to get the Json file
-        let file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
+        const files = await readdirAsync(backups); // Read "backups" directory
+        // Try to get the json file
+        const file = files.filter((f) => f.split(".").pop() === "json").find((f) => f === `${backupID}.json`);
         if(file){ // If the file exists
-            let backupInformations: BackupData = require(`${backups}${file}`);
+            const backupData: BackupData = require(`${backups}${file}`);
             // Returns backup informations
-            resolve(backupInformations);
+            resolve(backupData);
         } else {
             // If no backup was found, return an error message
             reject("No backup found");
@@ -43,14 +45,14 @@ async function getBackupData(backupID: string){
  * @param {string} backupID The ID of the backup to fetch
  * @returns {BackupInfor} The backup data
  */
-export async function fetch(backupID: string){
+export const fetch = (backupID: string) => {
     return new Promise<BackupInfos>(async function(resolve, reject){
         getBackupData(backupID).then((backupData) => {
-            let size = statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
-            let backupInfos: BackupInfos = {
+            const size = statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
+            const backupInfos: BackupInfos = {
+                data: backupData,
                 id: backupID,
-                size: Number((size/1024/1024).toFixed(2)),
-                data: backupData
+                size: Number((size/1024/1024).toFixed(2))
             };
             // Returns backup informations
             resolve(backupInfos);
@@ -65,12 +67,12 @@ export async function fetch(backupID: string){
  * @param {Guild} guild The guild to backup
  * @returns {BackupData} The backup data
  */
-export async function create(guild: Guild){
+export const create = async (guild: Guild) => {
     return new Promise<BackupData>(async (resolve, reject) => {
         if(master){
-            let backupData: BackupData = {
-                name: guild.name,
+            const backupData: BackupData = {
                 icon: guild.iconURL(),
+                name: guild.name,
                 region: guild.region,
                 verificationLevel: guild.verificationLevel,
                 explicitContentFilter: guild.explicitContentFilter,
@@ -96,7 +98,7 @@ export async function create(guild: Guild){
             // Backup channels
             backupData.channels = await createMaster.getChannels(guild);
             // Convert Object to JSON
-            let backupJSON = JSON.stringify(backupData);
+            const backupJSON = JSON.stringify(backupData);
             // Save the backup
             await writeFileAsync(`${backups}${backupData.id}.json`, backupJSON);
             // Returns ID
@@ -113,9 +115,11 @@ export async function create(guild: Guild){
  * @param {Guild} guild The guild on which the backup will be loaded
  * @returns {BackupData} The backup data
  */
-export async function load(backupID: string, guild: Guild){
+export const load = async (backupID: string, guild: Guild) => {
     return new Promise(async function(resolve, reject){
-        if(!guild) return reject("Invalid guild");
+        if(!guild){
+            return reject("Invalid guild");
+        }
         getBackupData(backupID).then(async (backupData) => {
             if(master){
                 try {
@@ -136,7 +140,7 @@ export async function load(backupID: string, guild: Guild){
                     // Restore embed channel
                     await loadMaster.embedChannel(guild, backupData);
                 } catch(e) {
-                    console.error(e);
+                    return reject(e);
                 }
                 // Then return the backup data
                 return resolve(backupData);
@@ -155,7 +159,7 @@ export async function load(backupID: string, guild: Guild){
  * @param {string} backupID The ID of the backup to remove
  * @returns {Promise<void>}
  */
-export async function remove(backupID: string){
+export const remove = async (backupID: string) => {
     return new Promise<void>((resolve, reject) => {
         try {
             require(`${backups}${backupID}.json`);
@@ -169,10 +173,10 @@ export async function remove(backupID: string){
 
 /**
  * Returns the list of all backup
- * @returns {Array<Snowflake>} The list of the backups
+ * @returns {Snowflake[]} The list of the backups
  */
-export async function list(){
-    let files = await readdirAsync(backups); // Read "backups" directory
+export const list = async () => {
+    const files = await readdirAsync(backups); // Read "backups" directory
     return files.map((f) => f.split('.')[0]);
 };
 
@@ -180,16 +184,18 @@ export async function list(){
  * Change the storage path
  * @param {string} path The folder path 
  */
-export async function setStorageFolder(path: string){
+export const setStorageFolder = (path: string) => {
     backups = path;
-    if(!existsSync(backups)) mkdirSync(backups);
+    if(!existsSync(backups)){
+        mkdirSync(backups);
+    }
 };
 
 export default {
     create,
-    load,
     fetch,
-    remove,
     list,
+    load,
+    remove,
     version
 };

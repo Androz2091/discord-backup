@@ -4,5 +4,5 @@ export interface BaseChannelData {
     type: string;
     name: string;
     parent?: string;
-    permissions: Array<ChannelPermissionsData>;
+    permissions: ChannelPermissionsData[];
 };
