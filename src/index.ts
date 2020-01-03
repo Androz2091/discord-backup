@@ -148,53 +148,51 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
 
 /**
  * Loads a backup for a guild
- * @param {string} backupID The ID of the backup to load
+ * @param {string|BackupData} backup The ID of the backup to load or a backup data
  * @param {Guild} guild The guild on which the backup will be loaded
  * @param {LoadOptions} [options] The load options
  * @returns {BackupData} The backup data
  */
-export const load = async (backupID: string, guild: Guild, options?: LoadOptions) => {
+export const load = async (backup: string|BackupData, guild: Guild, options?: LoadOptions) => {
     return new Promise(async (resolve, reject) => {
         if (!guild) {
             return reject('Invalid guild');
         }
-        getBackupData(backupID)
-            .then(async backupData => {
-                if (master) {
-                    try {
-                        if(options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore){
-                            // Clear the guild
-                            await utilMaster.clearGuild(guild);
-                        }
-                        // Restore guild configuration
-                        await loadMaster.conf(guild, backupData);
-                        // Restore guild roles
-                        await loadMaster.roles(guild, backupData);
-                        // Restore guild channels
-                        await loadMaster.channels(guild, backupData);
-                        // Restore afk channel and timeout
-                        await loadMaster.afk(guild, backupData);
-                        // Restore guild emojis
-                        await loadMaster.emojis(guild, backupData);
-                        // Restore guild bans
-                        await loadMaster.bans(guild, backupData);
-                        // Restore embed channel
-                        await loadMaster.embedChannel(guild, backupData);
-                    } catch (e) {
-                        return reject(e);
+        try {
+            const backupData: BackupData = (typeof backup === "string" ? await getBackupData(backup) : backup);
+            if (master) {
+                try {
+                    if(options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore){
+                        // Clear the guild
+                        await utilMaster.clearGuild(guild);
                     }
-                    // Then return the backup data
-                    return resolve(backupData);
-                } else {
-                    reject(
-                        "Only master branch of discord.js library is supported for now. Install it using 'npm install discordjs/discord.js'."
-                    );
+                    // Restore guild configuration
+                    await loadMaster.conf(guild, backupData);
+                    // Restore guild roles
+                    await loadMaster.roles(guild, backupData);
+                    // Restore guild channels
+                    await loadMaster.channels(guild, backupData);
+                    // Restore afk channel and timeout
+                    await loadMaster.afk(guild, backupData);
+                    // Restore guild emojis
+                    await loadMaster.emojis(guild, backupData);
+                    // Restore guild bans
+                    await loadMaster.bans(guild, backupData);
+                    // Restore embed channel
+                    await loadMaster.embedChannel(guild, backupData);
+                } catch (e) {
+                    return reject(e);
                 }
-            })
-            .catch(err => {
-                // If no backup was found, return an error message
-                return reject('No backup found');
-            });
+                // Then return the backup data
+                return resolve(backupData);
+            } else {
+                reject(
+                    "Only master branch of discord.js library is supported for now. Install it using 'npm install discordjs/discord.js'."
+                );
+            }
+        } catch (e) {
+            return reject('No backup found');
+        }
     });
 };
 
