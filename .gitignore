@@ -62,3 +62,9 @@ typings/
 
 # next.js build output
 .next
+
+# Compiled files
+/lib
+
+# Tests
+/test
