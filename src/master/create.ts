@@ -1,5 +1,14 @@
 import { CategoryChannel, Guild, TextChannel, VoiceChannel, Emoji } from 'discord.js';
-import { BanData, CategoryData, ChannelsData, CreateOptions, EmojiData, RoleData, TextChannelData, VoiceChannelData } from '../types';
+import {
+    BanData,
+    CategoryData,
+    ChannelsData,
+    CreateOptions,
+    EmojiData,
+    RoleData,
+    TextChannelData,
+    VoiceChannelData
+} from '../types';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 import axios from 'axios';
 
@@ -56,7 +65,7 @@ export async function getEmojis(guild: Guild, options: CreateOptions) {
         const eData: EmojiData = {
             name: emoji.name
         };
-        if(options.saveImages && options.saveImages === "base64"){
+        if (options.saveImages && options.saveImages === 'base64') {
             let res = await axios.get(emoji.url, { responseType: 'arraybuffer' });
             eData.base64 = Buffer.from(res.data, 'binary').toString('base64');
         } else {

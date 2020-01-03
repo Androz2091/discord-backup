@@ -8,7 +8,7 @@ import { EmojiData } from './EmojiData';
 export interface BackupData {
     name: string;
     iconURL?: string;
-    iconBase64?: string; 
+    iconBase64?: string;
     region: string;
     verificationLevel: number;
     explicitContentFilter: number;

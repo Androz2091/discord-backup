@@ -90,51 +90,53 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
                 guildID: guild.id,
                 id: SnowflakeUtil.generate(Date.now())
             };
-            if(guild.iconURL()){
-                if(options.saveImages && options.saveImages === "base64"){
+            if (guild.iconURL()) {
+                if (options.saveImages && options.saveImages === 'base64') {
                     let res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
                     backupData.iconBase64 = Buffer.from(res.data, 'binary').toString('base64');
                 } else {
                     backupData.iconURL = guild.iconURL();
                 }
             }
-            if(guild.splashURL()){
-                if(options.saveImages && options.saveImages === "base64"){
+            if (guild.splashURL()) {
+                if (options.saveImages && options.saveImages === 'base64') {
                     let res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
                     backupData.splashBase64 = Buffer.from(res.data, 'binary').toString('base64');
                 } else {
                     backupData.splashURL = guild.splashURL();
                 }
             }
-            if(guild.bannerURL()){
-                if(options.saveImages && options.saveImages === "base64"){
+            if (guild.bannerURL()) {
+                if (options.saveImages && options.saveImages === 'base64') {
                     let res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
                     backupData.bannerBase64 = Buffer.from(res.data, 'binary').toString('base64');
                 } else {
                     backupData.bannerURL = guild.bannerURL();
                 }
             }
-            if(!(options.doNotBackup || []).includes('bans')){
+            if (!(options.doNotBackup || []).includes('bans')) {
                 // Backup bans
                 backupData.bans = await createMaster.getBans(guild);
             }
-            if(!(options.doNotBackup || []).includes('roles')){
+            if (!(options.doNotBackup || []).includes('roles')) {
                 // Backup roles
                 backupData.roles = await createMaster.getRoles(guild);
             }
-            if(!(options.doNotBackup || []).includes('emojis')){
+            if (!(options.doNotBackup || []).includes('emojis')) {
                 // Backup emojis
                 backupData.emojis = await createMaster.getEmojis(guild, options);
             }
-            if(!(options.doNotBackup || []).includes('channels')){
+            if (!(options.doNotBackup || []).includes('channels')) {
                 // Backup channels
                 backupData.channels = await createMaster.getChannels(guild, options);
             }
-            if(options.jsonSave === undefined || options.jsonSave){
+            if (options.jsonSave === undefined || options.jsonSave) {
                 // Convert Object to JSON
-                const backupJSON = (options.jsonBeautify ? JSON.stringify(backupData, null, 4) : JSON.stringify(backupData));
+                const backupJSON = options.jsonBeautify
+                    ? JSON.stringify(backupData, null, 4)
+                    : JSON.stringify(backupData);
                 // Save the backup
-                await writeFileAsync(`${backups}${backupData.id}.json`, backupJSON, "utf-8");
+                await writeFileAsync(`${backups}${backupData.id}.json`, backupJSON, 'utf-8');
             }
             // Returns ID
             resolve(backupData);
@@ -153,16 +155,16 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
  * @param {LoadOptions} [options] The load options
  * @returns {BackupData} The backup data
  */
-export const load = async (backup: string|BackupData, guild: Guild, options?: LoadOptions) => {
+export const load = async (backup: string | BackupData, guild: Guild, options?: LoadOptions) => {
     return new Promise(async (resolve, reject) => {
         if (!guild) {
             return reject('Invalid guild');
         }
         try {
-            const backupData: BackupData = (typeof backup === "string" ? await getBackupData(backup) : backup);
+            const backupData: BackupData = typeof backup === 'string' ? await getBackupData(backup) : backup;
             if (master) {
                 try {
-                    if(options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore){
+                    if (options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
                         // Clear the guild
                         await utilMaster.clearGuild(guild);
                     }

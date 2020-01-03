@@ -14,17 +14,17 @@ export async function conf(guild: Guild, backupData: BackupData) {
     }
     if (backupData.iconURL) {
         guild.setIcon(backupData.iconURL);
-    } else if(backupData.iconBase64) {
+    } else if (backupData.iconBase64) {
         guild.setIcon(backupData.iconBase64);
     }
     if (backupData.splashURL) {
         guild.setSplash(backupData.splashURL);
-    } else if(backupData.splashBase64) {
+    } else if (backupData.splashBase64) {
         guild.setSplash(backupData.splashBase64);
     }
     if (backupData.bannerURL) {
         guild.setIcon(backupData.bannerURL);
-    } else if(backupData.bannerBase64) {
+    } else if (backupData.bannerBase64) {
         guild.setIcon(backupData.bannerBase64);
     }
     if (backupData.region) {
