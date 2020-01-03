@@ -2,6 +2,7 @@ import { Guild, Snowflake, SnowflakeUtil, version as djsVersion } from 'discord.
 const master: boolean = djsVersion.split('.')[0] === '12';
 
 import axios from 'axios';
+import { sep } from 'path';
 
 import { existsSync, mkdirSync, readdir, statSync, unlinkSync, writeFile } from 'fs';
 import { promisify } from 'util';
@@ -14,7 +15,7 @@ import * as createMaster from './master/create';
 import * as loadMaster from './master/load';
 import * as utilMaster from './master/util';
 
-let backups = `${__dirname}/backups/`;
+let backups = `${__dirname}/backups`;
 if (!existsSync(backups)) {
     mkdirSync(backups);
 }
@@ -140,7 +141,7 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
                         ? JSON.stringify(backupData, null, 4)
                         : JSON.stringify(backupData);
                     // Save the backup
-                    await writeFileAsync(`${backups}${backupData.id}.json`, backupJSON, 'utf-8');
+                    await writeFileAsync(`${backups}/${backupData.id}.json`, backupJSON, 'utf-8');
                 }
                 // Returns ID
                 resolve(backupData);
@@ -236,6 +237,9 @@ export const list = async () => {
  * @param {string} path The folder path
  */
 export const setStorageFolder = (path: string) => {
+    if (path.endsWith(sep)) {
+        path = path.substr(0, path.length - 1);
+    }
     backups = path;
     if (!existsSync(backups)) {
         mkdirSync(backups);
