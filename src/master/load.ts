@@ -15,17 +15,17 @@ export async function conf(guild: Guild, backupData: BackupData) {
     if (backupData.iconURL) {
         guild.setIcon(backupData.iconURL);
     } else if (backupData.iconBase64) {
-        guild.setIcon(backupData.iconBase64);
+        guild.setIcon(new Buffer(backupData.iconBase64, 'base64'));
     }
     if (backupData.splashURL) {
         guild.setSplash(backupData.splashURL);
     } else if (backupData.splashBase64) {
-        guild.setSplash(backupData.splashBase64);
+        guild.setSplash(new Buffer(backupData.splashBase64, 'base64'));
     }
     if (backupData.bannerURL) {
         guild.setIcon(backupData.bannerURL);
     } else if (backupData.bannerBase64) {
-        guild.setIcon(backupData.bannerBase64);
+        guild.setIcon(new Buffer(backupData.bannerBase64, 'base64'));
     }
     if (backupData.region) {
         guild.setRegion(backupData.region);
@@ -102,7 +102,11 @@ export async function afk(guild: Guild, backupData: BackupData) {
  */
 export async function emojis(guild: Guild, backupData: BackupData) {
     backupData.emojis.forEach(emoji => {
-        guild.emojis.create(emoji.url, emoji.name);
+        if (emoji.url) {
+            guild.emojis.create(emoji.url, emoji.name);
+        } else if (emoji.base64) {
+            guild.emojis.create(new Buffer(emoji.base64, 'base64'), emoji.name);
+        }
     });
     return;
 }
