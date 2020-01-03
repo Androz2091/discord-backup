@@ -42,7 +42,7 @@ backup.create(Guild, options).then((backupData) => {
     console.log(backupData.id); // NSJH2
 });
 ```
-Click [here](#create-[advanced]) to learn more about **backup options**.
+Click [here](#create-advanced) to learn more about **backup options**.
 
 ### Load
 
