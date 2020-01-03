@@ -73,7 +73,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
             messages: []
         };
         /* Fetch channel messages */
-        let messageCount = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
+        const messageCount = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
         channel.messages
             .fetch({ limit: messageCount })
             .then((fetched: Collection<Snowflake, Message>) => {

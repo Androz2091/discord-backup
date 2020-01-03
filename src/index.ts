@@ -92,7 +92,7 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
             };
             if (guild.iconURL()) {
                 if (options.saveImages && options.saveImages === 'base64') {
-                    let res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
+                    const res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
                     backupData.iconBase64 = Buffer.from(res.data, 'binary').toString('base64');
                 } else {
                     backupData.iconURL = guild.iconURL();
@@ -100,7 +100,7 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
             }
             if (guild.splashURL()) {
                 if (options.saveImages && options.saveImages === 'base64') {
-                    let res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
+                    const res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
                     backupData.splashBase64 = Buffer.from(res.data, 'binary').toString('base64');
                 } else {
                     backupData.splashURL = guild.splashURL();
@@ -108,7 +108,7 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
             }
             if (guild.bannerURL()) {
                 if (options.saveImages && options.saveImages === 'base64') {
-                    let res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
+                    const res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
                     backupData.bannerBase64 = Buffer.from(res.data, 'binary').toString('base64');
                 } else {
                     backupData.bannerURL = guild.bannerURL();

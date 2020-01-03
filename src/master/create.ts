@@ -1,4 +1,5 @@
-import { CategoryChannel, Guild, TextChannel, VoiceChannel, Emoji } from 'discord.js';
+import axios from 'axios';
+import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
 import {
     BanData,
     CategoryData,
@@ -10,7 +11,6 @@ import {
     VoiceChannelData
 } from '../types';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
-import axios from 'axios';
 
 /**
  * Returns an array with the banned members of the guild
@@ -66,7 +66,7 @@ export async function getEmojis(guild: Guild, options: CreateOptions) {
             name: emoji.name
         };
         if (options.saveImages && options.saveImages === 'base64') {
-            let res = await axios.get(emoji.url, { responseType: 'arraybuffer' });
+            const res = await axios.get(emoji.url, { responseType: 'arraybuffer' });
             eData.base64 = Buffer.from(res.data, 'binary').toString('base64');
         } else {
             eData.url = emoji.url;
