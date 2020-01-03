@@ -248,11 +248,11 @@ client.on("message", async message => {
             let embed = new Discord.MessageEmbed()
                 .setAuthor("Backup Informations")
                 // Display the backup ID
-                .addField("ID", backupInfos.id, false)
+                .addField("Backup ID", backupInfos.id, false)
                 // Displays the server from which this backup comes
-                .addField("Server", backupInfos.data.guildID, false)
+                .addField("Server ID", backupInfos.data.guildID, false)
                 // Display the size (in mb) of the backup
-                .addField("Size", backupInfos.size, false)
+                .addField("Size", `${backupInfos.size} mb`, false)
                 // Display when the backup was created
                 .addField("Created at", formatedDate, false)
                 .setColor("#FF0000");
