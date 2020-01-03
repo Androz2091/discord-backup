@@ -32,7 +32,7 @@ const getBackupData = async (backupID: string) => {
         const file = files.filter(f => f.split('.').pop() === 'json').find(f => f === `${backupID}.json`);
         if (file) {
             // If the file exists
-            const backupData: BackupData = require(`${backups}${file}`);
+            const backupData: BackupData = require(`${backups}${sep}${file}`);
             // Returns backup informations
             resolve(backupData);
         } else {
@@ -51,7 +51,7 @@ export const fetch = (backupID: string) => {
     return new Promise<BackupInfos>(async (resolve, reject) => {
         getBackupData(backupID)
             .then(backupData => {
-                const size = statSync(`${backups}${backupID}.json`).size; // Gets the size of the file using fs
+                const size = statSync(`${backups}${sep}${backupID}.json`).size; // Gets the size of the file using fs
                 const backupInfos: BackupInfos = {
                     data: backupData,
                     id: backupID,
@@ -141,7 +141,7 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
                         ? JSON.stringify(backupData, null, 4)
                         : JSON.stringify(backupData);
                     // Save the backup
-                    await writeFileAsync(`${backups}/${backupData.id}.json`, backupJSON, 'utf-8');
+                    await writeFileAsync(`${backups}${sep}${backupData.id}.json`, backupJSON, 'utf-8');
                 }
                 // Returns ID
                 resolve(backupData);
@@ -214,8 +214,8 @@ export const load = async (backup: string | BackupData, guild: Guild, options?: 
 export const remove = async (backupID: string) => {
     return new Promise<void>((resolve, reject) => {
         try {
-            require(`${backups}${backupID}.json`);
-            unlinkSync(`${backups}${backupID}.json`);
+            require(`${backups}${sep}${backupID}.json`);
+            unlinkSync(`${backups}${sep}${backupID}.json`);
             resolve();
         } catch (error) {
             reject('Backup not found');
