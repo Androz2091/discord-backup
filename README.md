@@ -168,7 +168,8 @@ settings = {
 
 client.on("ready", () => {
     console.log("I'm ready !");
-    backup.setStorageFolder(__dirname+"/giveaways.json");
+    // Sets the storage to the current folder (__dirname is a global variable)
+    backup.setStorageFolder(__dirname);
 });
 
 client.on("message", async message => {
