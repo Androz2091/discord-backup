@@ -1,5 +1,4 @@
-import { BaseChannelData } from './BaseChannelData';
-import { MessageData } from './MessageData';
+import { BaseChannelData, MessageData } from './';
 
 export interface TextChannelData extends BaseChannelData {
     nsfw: boolean;

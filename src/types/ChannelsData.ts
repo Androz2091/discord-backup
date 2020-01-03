@@ -1,6 +1,4 @@
-import { CategoryData } from './CategoryData';
-import { TextChannelData } from './TextChannelData';
-import { VoiceChannelData } from './VoiceChannelData';
+import { CategoryData, TextChannelData, VoiceChannelData } from './';
 
 export interface ChannelsData {
     categories: CategoryData[];

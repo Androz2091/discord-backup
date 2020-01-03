@@ -1,4 +1,4 @@
-import { BaseChannelData } from './BaseChannelData';
+import { BaseChannelData } from './';
 
 export interface VoiceChannelData extends BaseChannelData {
     bitrate: number;

@@ -1,4 +1,4 @@
-import { ChannelPermissionsData } from './ChannelPermissionData';
+import { ChannelPermissionsData } from './';
 
 export interface BaseChannelData {
     type: string;

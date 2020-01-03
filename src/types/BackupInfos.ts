@@ -1,4 +1,4 @@
-import { BackupData } from './BackupData';
+import { BackupData } from './';
 
 export interface BackupInfos {
     id: string;
