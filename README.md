@@ -33,7 +33,7 @@ Create a backup for the server specified in the parameters!
 
 ```js
 /**
- * @param {object} [Guild] - The discord server you want to backup
+ * @param {Guild} [Guild] - The discord server you want to backup
  * @param {object} [options] - The backup options
  */
 
@@ -51,7 +51,7 @@ Allows you to load a backup on a Discord server!
 ```js
 /**
  * @param {string} [backupID] - The ID of the backup that you want to load
- * @param {object} [Guild] - The discord server on which you want to load the backup
+ * @param {Guild} [Guild] - The discord server on which you want to load the backup
  */
 
 const backup = require("discord-backup");
