@@ -78,6 +78,9 @@ export async function channels(guild: Guild, backupData: BackupData) {
             });
         });
     });
+    backupData.channels.others.forEach(channelData => {
+        loadChannel(channelData, guild, null);
+    });
     return;
 }
 
