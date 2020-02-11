@@ -23,7 +23,7 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
         .filter(p => p.type === 'role')
         .forEach(perm => {
             // For each overwrites permission
-            const role = channel.guild.roles.get(perm.id);
+            const role = channel.guild.roles.cache.get(perm.id);
             if (role) {
                 permissions.push({
                     roleName: role.name,
@@ -109,7 +109,7 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
             // When the category is created
             const finalPermissions: OverwriteData[] = [];
             categoryData.permissions.forEach(perm => {
-                const role = guild.roles.find(r => r.name === perm.roleName);
+                const role = guild.roles.cache.find(r => r.name === perm.roleName);
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
@@ -157,7 +157,7 @@ export async function loadChannel(
             /* Update channel permissions */
             const finalPermissions: OverwriteData[] = [];
             channelData.permissions.forEach(perm => {
-                const role = guild.roles.find(r => r.name === perm.roleName);
+                const role = guild.roles.cache.find(r => r.name === perm.roleName);
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
@@ -201,15 +201,15 @@ export async function loadChannel(
  * @returns {Promise<void>}
  */
 export async function clearGuild(guild: Guild) {
-    guild.roles
+    guild.roles.cache
         .filter(role => !role.managed && role.editable && role.id !== guild.id)
         .forEach(role => {
             role.delete().catch(() => {});
         });
-    guild.channels.forEach(channel => {
+    guild.channels.cache.forEach(channel => {
         channel.delete().catch(() => {});
     });
-    guild.emojis.forEach(emoji => {
+    guild.emojis.cache.forEach(emoji => {
         emoji.delete().catch(() => {});
     });
     const webhooks = await guild.fetchWebhooks();

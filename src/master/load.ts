@@ -91,7 +91,7 @@ export async function channels(guild: Guild, backupData: BackupData) {
  */
 export async function afk(guild: Guild, backupData: BackupData) {
     if (backupData.afk) {
-        guild.setAFKChannel(guild.channels.find(ch => ch.name === backupData.afk.name));
+        guild.setAFKChannel(guild.channels.cache.find(ch => ch.name === backupData.afk.name));
         guild.setAFKTimeout(backupData.afk.timeout);
     }
     return;
@@ -138,7 +138,7 @@ export async function embedChannel(guild: Guild, backupData: BackupData) {
     if (backupData.embed.channel) {
         guild.setEmbed({
             enabled: backupData.embed.enabled,
-            channel: guild.channels.find(ch => ch.name === backupData.embed.channel)
+            channel: guild.channels.cache.find(ch => ch.name === backupData.embed.channel)
         });
     }
     return;

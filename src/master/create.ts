@@ -36,7 +36,7 @@ export async function getBans(guild: Guild) {
  */
 export async function getRoles(guild: Guild) {
     const roles: RoleData[] = [];
-    guild.roles.forEach(role => {
+    guild.roles.cache.forEach(role => {
         if (role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')) {
             // If the role is not @everyone
             const roleData = {
@@ -61,7 +61,7 @@ export async function getRoles(guild: Guild) {
  */
 export async function getEmojis(guild: Guild, options: CreateOptions) {
     const emojis: EmojiData[] = [];
-    guild.emojis.forEach(async emoji => {
+    guild.emojis.cache.forEach(async emoji => {
         const eData: EmojiData = {
             name: emoji.name
         };
@@ -89,7 +89,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             others: []
         };
         // Gets the list of the categories and sort them by position
-        const categories = guild.channels
+        const categories = guild.channels.cache
             .filter(ch => ch.type === 'category')
             .sort((a, b) => a.position - b.position)
             .array() as CategoryChannel[];
@@ -114,7 +114,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             channels.categories.push(categoryData); // Update channels object
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
-        const others = guild.channels
+        const others = guild.channels.cache
             .filter(ch => !ch.parent && ch.type !== 'category')
             .sort((a, b) => a.position - b.position)
             .array();
