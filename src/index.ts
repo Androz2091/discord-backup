@@ -1,4 +1,4 @@
-import { Guild, Snowflake, SnowflakeUtil, version as djsVersion } from 'discord.js';
+import { Guild, SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === '12';
 
 import axios from 'axios';
@@ -22,8 +22,6 @@ if (!existsSync(backups)) {
 
 /**
  * Checks if a backup exists and returns its data
- * @param {string} backupID
- * @returns {BackupData} The backup data
  */
 const getBackupData = async (backupID: string) => {
     return new Promise<BackupData>(async (resolve, reject) => {
@@ -44,8 +42,6 @@ const getBackupData = async (backupID: string) => {
 
 /**
  * Fetches a backyp and returns the information about it
- * @param {string} backupID The ID of the backup to fetch
- * @returns {BackupInfor} The backup data
  */
 export const fetch = (backupID: string) => {
     return new Promise<BackupInfos>(async (resolve, reject) => {
@@ -60,7 +56,7 @@ export const fetch = (backupID: string) => {
                 // Returns backup informations
                 resolve(backupInfos);
             })
-            .catch(err => {
+            .catch(() => {
                 reject('No backup found');
             });
     });
@@ -68,9 +64,6 @@ export const fetch = (backupID: string) => {
 
 /**
  * Creates a new backup and saves it to the storage
- * @param {Guild} guild The guild to backup
- * @param {CreateOptions} [options] The backup options
- * @returns {BackupData} The backup data
  */
 export const create = async (guild: Guild, options?: CreateOptions) => {
     return new Promise<BackupData>(async (resolve, reject) => {
@@ -158,10 +151,6 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
 
 /**
  * Loads a backup for a guild
- * @param {string|BackupData} backup The ID of the backup to load or a backup data
- * @param {Guild} guild The guild on which the backup will be loaded
- * @param {LoadOptions} [options] The load options
- * @returns {BackupData} The backup data
  */
 export const load = async (backup: string | BackupData, guild: Guild, options?: LoadOptions) => {
     return new Promise(async (resolve, reject) => {
@@ -208,8 +197,6 @@ export const load = async (backup: string | BackupData, guild: Guild, options?: 
 
 /**
  * Removes a backup
- * @param {string} backupID The ID of the backup to remove
- * @returns {Promise<void>}
  */
 export const remove = async (backupID: string) => {
     return new Promise<void>((resolve, reject) => {
@@ -225,7 +212,6 @@ export const remove = async (backupID: string) => {
 
 /**
  * Returns the list of all backup
- * @returns {Snowflake[]} The list of the backups
  */
 export const list = async () => {
     const files = await readdirAsync(backups); // Read "backups" directory
@@ -234,7 +220,6 @@ export const list = async () => {
 
 /**
  * Change the storage path
- * @param {string} path The folder path
  */
 export const setStorageFolder = (path: string) => {
     if (path.endsWith(sep)) {

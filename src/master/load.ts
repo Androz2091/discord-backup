@@ -4,9 +4,6 @@ import { loadCategory, loadChannel } from './util';
 
 /**
  * Restores the guild configuration
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
- * @returns {Promise<void>}
  */
 export async function conf(guild: Guild, backupData: BackupData) {
     if (backupData.name) {
@@ -44,9 +41,6 @@ export async function conf(guild: Guild, backupData: BackupData) {
 
 /**
  * Restore the guild roles
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
- * @returns {Promise<void>}
  */
 export async function roles(guild: Guild, backupData: BackupData) {
     backupData.roles.forEach(roleData => {
@@ -66,9 +60,6 @@ export async function roles(guild: Guild, backupData: BackupData) {
 
 /**
  * Restore the guild channels
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
- * @returns {Promise<void>}
  */
 export async function channels(guild: Guild, backupData: BackupData) {
     backupData.channels.categories.forEach(categoryData => {
@@ -86,8 +77,6 @@ export async function channels(guild: Guild, backupData: BackupData) {
 
 /**
  * Restore the afk configuration
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
  */
 export async function afk(guild: Guild, backupData: BackupData) {
     if (backupData.afk) {
@@ -99,9 +88,6 @@ export async function afk(guild: Guild, backupData: BackupData) {
 
 /**
  * Restore guild emojis
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
- * @returns {Promise<void>}
  */
 export async function emojis(guild: Guild, backupData: BackupData) {
     backupData.emojis.forEach(emoji => {
@@ -116,8 +102,6 @@ export async function emojis(guild: Guild, backupData: BackupData) {
 
 /**
  * Restore guild bans
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
  */
 export async function bans(guild: Guild, backupData: BackupData) {
     backupData.bans.forEach(ban => {
@@ -130,9 +114,6 @@ export async function bans(guild: Guild, backupData: BackupData) {
 
 /**
  * Restore embedChannel configuration
- * @param {Guild} guild The discord guild
- * @param {BackupData} backupData The backup data
- * @returns {Promise<void>}
  */
 export async function embedChannel(guild: Guild, backupData: BackupData) {
     if (backupData.embed.channel) {

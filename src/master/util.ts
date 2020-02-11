@@ -7,15 +7,12 @@ import {
     OverwriteData,
     Snowflake,
     TextChannel,
-    VoiceChannel,
-    WebhookMessageOptions
+    VoiceChannel
 } from 'discord.js';
 import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData } from '../types';
 
 /**
  * Gets the permissions for a channel
- * @param {GuildChannel} channel The channel
- * @returns {ChannelPermissionsData[]} The permissions
  */
 export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel) {
     const permissions: ChannelPermissionsData[] = [];
@@ -37,8 +34,6 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
 
 /**
  * Fetches the voice channel data that is necessary for the backup
- * @param {VoiceChannel} channel The voice channel
- * @returns The channel data
  */
 export async function fetchVoiceChannelData(channel: VoiceChannel) {
     return new Promise<VoiceChannelData>(async resolve => {
@@ -57,8 +52,6 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
 
 /**
  * Fetches the text channel data that is necessary for the backup
- * @param {TextChannel} channel The text channel
- * @returns The channel data
  */
 export async function fetchTextChannelData(channel: TextChannel, options: CreateOptions) {
     return new Promise<TextChannelData>(async resolve => {
@@ -90,7 +83,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                 /* Return channel data */
                 resolve(channelData);
             })
-            .catch(err => {
+            .catch(() => {
                 channelData.messages = [];
                 resolve(channelData);
             });
@@ -99,9 +92,6 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
 
 /**
  * Creates a category for the guild
- * @param {CategoryData} categoryData The data of the category to create
- * @param {Guild} guild The discord guild
- * @returns The category
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>(resolve => {
@@ -129,17 +119,13 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
 
 /**
  * Create a channel and returns it
- * @param {TextChannelData|VoiceChannelData} channelData The channel Data
- * @param {Guild} guild The guild on which the category will be created
- * @param {CategoryChannel} category The parent category of the channel (optional)
- * @returns The channel
  */
 export async function loadChannel(
     channelData: TextChannelData | VoiceChannelData,
     guild: Guild,
     category?: CategoryChannel
 ) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
         const createOptions: GuildCreateChannelOptions = {
             type: null,
             parent: category
@@ -197,8 +183,6 @@ export async function loadChannel(
 
 /**
  * Delete all roles, all channels, all emojis, etc... of a guild
- * @param {Guild} guild
- * @returns {Promise<void>}
  */
 export async function clearGuild(guild: Guild) {
     guild.roles.cache
@@ -218,7 +202,7 @@ export async function clearGuild(guild: Guild) {
     });
     const bans = await guild.fetchBans();
     bans.forEach(ban => {
-        guild.members.unban(ban.user).catch(err => {});
+        guild.members.unban(ban.user).catch(() => {});
     });
     return;
 }
