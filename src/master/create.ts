@@ -36,20 +36,22 @@ export async function getBans(guild: Guild) {
  */
 export async function getRoles(guild: Guild) {
     const roles: RoleData[] = [];
-    guild.roles.cache.forEach(role => {
-        if (role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')) {
-            // If the role is not @everyone
-            const roleData = {
-                name: role.name,
-                color: role.hexColor,
-                hoist: role.hoist,
-                permissions: role.permissions.bitfield,
-                mentionable: role.mentionable,
-                position: role.position
-            };
-            roles.push(roleData);
-        }
-    });
+    guild.roles.cache
+        .sort((a, b) => b.position - a.position)
+        .forEach(role => {
+            if (role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')) {
+                // If the role is not @everyone
+                const roleData = {
+                    name: role.name,
+                    color: role.hexColor,
+                    hoist: role.hoist,
+                    permissions: role.permissions.bitfield,
+                    mentionable: role.mentionable,
+                    position: role.position
+                };
+                roles.push(roleData);
+            }
+        });
     return roles;
 }
 

@@ -125,7 +125,7 @@ export async function loadChannel(
     guild: Guild,
     category?: CategoryChannel
 ) {
-    return new Promise(async (resolve) => {
+    return new Promise(async resolve => {
         const createOptions: GuildCreateChannelOptions = {
             type: null,
             parent: category
