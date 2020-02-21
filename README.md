@@ -268,3 +268,27 @@ client.on("message", async message => {
 //Your secret token to log the bot in. (never share this to anyone!)
 client.login(settings.token);
 ```
+
+## Restored things
+
+Here are all things that can be restored with `discord-backup`:  
+
+* Server icon  
+* Server banner  
+* Server region  
+* Server splash  
+* Server verification level  
+* Server explicit content filter  
+* Server default message notifications  
+* Server embed channel  
+* Server bans (with reasons)  
+* Server emojis  
+* Server AFK (channel and timeout)  
+* Server channels (with permissions, type, nsfw, messages, etc...)  
+* Server roles (with permissions, color, etc...)
+
+Example of things that can't be restored:
+
+* Server logs  
+* Server invitations  
+* Server vanity url
