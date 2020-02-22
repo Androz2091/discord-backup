@@ -9,20 +9,20 @@ export async function conf(guild: Guild, backupData: BackupData) {
     if (backupData.name) {
         guild.setName(backupData.name);
     }
-    if (backupData.iconURL) {
-        guild.setIcon(backupData.iconURL);
-    } else if (backupData.iconBase64) {
+    if (backupData.iconBase64) {
         guild.setIcon(new Buffer(backupData.iconBase64, 'base64'));
+    } else if (backupData.iconURL) {
+        guild.setIcon(backupData.iconURL);
     }
-    if (backupData.splashURL) {
-        guild.setSplash(backupData.splashURL);
-    } else if (backupData.splashBase64) {
+    if (backupData.splashBase64) {
         guild.setSplash(new Buffer(backupData.splashBase64, 'base64'));
+    } else if (backupData.splashURL) {
+        guild.setSplash(backupData.splashURL);
     }
-    if (backupData.bannerURL) {
-        guild.setIcon(backupData.bannerURL);
-    } else if (backupData.bannerBase64) {
-        guild.setIcon(new Buffer(backupData.bannerBase64, 'base64'));
+    if (backupData.bannerBase64) {
+        guild.setBanner(new Buffer(backupData.bannerBase64, 'base64'));
+    } else if (backupData.bannerURL) {
+        guild.setBanner(backupData.bannerURL);
     }
     if (backupData.region) {
         guild.setRegion(backupData.region);
