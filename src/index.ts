@@ -11,9 +11,9 @@ const readdirAsync = promisify(readdir);
 
 import { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
 
-import * as createMaster from './master/create';
-import * as loadMaster from './master/load';
-import * as utilMaster from './master/util';
+import * as createStable from './stable/create';
+import * as loadStable from './stable/load';
+import * as utilStable from './stable/util';
 
 let backups = `${__dirname}/backups`;
 if (!existsSync(backups)) {
@@ -67,7 +67,7 @@ export const fetch = (backupID: string) => {
  */
 export const create = async (guild: Guild, options?: CreateOptions) => {
     return new Promise<BackupData>(async (resolve, reject) => {
-        if (master) {
+        if (!master) {
             try {
                 const backupData: BackupData = {
                     name: guild.name,
@@ -88,42 +88,42 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
                     guildID: guild.id,
                     id: SnowflakeUtil.generate(Date.now())
                 };
-                if (guild.iconURL()) {
+                if (guild.iconURL) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        const res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
+                        const res = await axios.get(guild.iconURL, { responseType: 'arraybuffer' });
                         backupData.iconBase64 = Buffer.from(res.data, 'binary').toString('base64');
                     }
-                    backupData.iconURL = guild.iconURL();
+                    backupData.iconURL = guild.iconURL;
                 }
-                if (guild.splashURL()) {
+                if (guild.splashURL) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        const res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
+                        const res = await axios.get(guild.splashURL, { responseType: 'arraybuffer' });
                         backupData.splashBase64 = Buffer.from(res.data, 'binary').toString('base64');
                     }
-                    backupData.splashURL = guild.splashURL();
+                    backupData.splashURL = guild.splashURL;
                 }
-                if (guild.bannerURL()) {
+                if (guild.bannerURL) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        const res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
+                        const res = await axios.get(guild.bannerURL, { responseType: 'arraybuffer' });
                         backupData.bannerBase64 = Buffer.from(res.data, 'binary').toString('base64');
                     }
-                    backupData.bannerURL = guild.bannerURL();
+                    backupData.bannerURL = guild.bannerURL;
                 }
                 if (!options || !(options.doNotBackup || []).includes('bans')) {
                     // Backup bans
-                    backupData.bans = await createMaster.getBans(guild);
+                    backupData.bans = await createStable.getBans(guild);
                 }
                 if (!options || !(options.doNotBackup || []).includes('roles')) {
                     // Backup roles
-                    backupData.roles = await createMaster.getRoles(guild);
+                    backupData.roles = await createStable.getRoles(guild);
                 }
                 if (!options || !(options.doNotBackup || []).includes('emojis')) {
                     // Backup emojis
-                    backupData.emojis = await createMaster.getEmojis(guild, options);
+                    backupData.emojis = await createStable.getEmojis(guild, options);
                 }
                 if (!options || !(options.doNotBackup || []).includes('channels')) {
                     // Backup channels
-                    backupData.channels = await createMaster.getChannels(guild, options);
+                    backupData.channels = await createStable.getChannels(guild, options);
                 }
                 if (!options || options.jsonSave === undefined || options.jsonSave) {
                     // Convert Object to JSON
@@ -140,7 +140,7 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
             }
         } else {
             reject(
-                "Only master branch of discord.js library is supported for now. Install it using 'npm install discordjs/discord.js'."
+                "Only 11.5-dev branch of discord.js library is supported by this discord-backup version. Install the one for the master branch with 'npm install discord-backup'."
             );
         }
     });
@@ -156,26 +156,26 @@ export const load = async (backup: string | BackupData, guild: Guild, options?: 
         }
         try {
             const backupData: BackupData = typeof backup === 'string' ? await getBackupData(backup) : backup;
-            if (master) {
+            if (!master) {
                 try {
                     if (!options || options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
                         // Clear the guild
-                        await utilMaster.clearGuild(guild);
+                        await utilStable.clearGuild(guild);
                     }
                     // Restore guild configuration
-                    await loadMaster.conf(guild, backupData);
+                    await loadStable.conf(guild, backupData);
                     // Restore guild roles
-                    await loadMaster.roles(guild, backupData);
+                    await loadStable.roles(guild, backupData);
                     // Restore guild channels
-                    await loadMaster.channels(guild, backupData);
+                    await loadStable.channels(guild, backupData);
                     // Restore afk channel and timeout
-                    await loadMaster.afk(guild, backupData);
+                    await loadStable.afk(guild, backupData);
                     // Restore guild emojis
-                    await loadMaster.emojis(guild, backupData);
+                    await loadStable.emojis(guild, backupData);
                     // Restore guild bans
-                    await loadMaster.bans(guild, backupData);
+                    await loadStable.bans(guild, backupData);
                     // Restore embed channel
-                    await loadMaster.embedChannel(guild, backupData);
+                    await loadStable.embedChannel(guild, backupData);
                 } catch (e) {
                     return reject(e);
                 }
@@ -183,7 +183,7 @@ export const load = async (backup: string | BackupData, guild: Guild, options?: 
                 return resolve(backupData);
             } else {
                 reject(
-                    "Only master branch of discord.js library is supported for now. Install it using 'npm install discordjs/discord.js'."
+                    "Only 11.5-dev branch of discord.js library is supported by this discord-backup version. Install the one for the master branch with 'npm install discord-backup'."
                 );
             }
         } catch (e) {

@@ -1,4 +1,4 @@
-import { Guild } from 'discord.js';
+import { Guild, DefaultMessageNotifications } from 'discord.js';
 import { BackupData } from '../types';
 import { loadCategory, loadChannel } from './util';
 
@@ -30,9 +30,6 @@ export async function conf(guild: Guild, backupData: BackupData) {
     if (backupData.verificationLevel) {
         guild.setVerificationLevel(backupData.verificationLevel);
     }
-    if (backupData.defaultMessageNotifications) {
-        guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications);
-    }
     if (backupData.explicitContentFilter) {
         guild.setExplicitContentFilter(backupData.explicitContentFilter);
     }
@@ -44,15 +41,12 @@ export async function conf(guild: Guild, backupData: BackupData) {
  */
 export async function roles(guild: Guild, backupData: BackupData) {
     backupData.roles.forEach(roleData => {
-        guild.roles.create({
-            // Create the role
-            data: {
-                name: roleData.name,
-                color: roleData.color,
-                hoist: roleData.hoist,
-                permissions: roleData.permissions,
-                mentionable: roleData.mentionable
-            }
+        guild.createRole({
+            name: roleData.name,
+            color: roleData.color,
+            hoist: roleData.hoist,
+            permissions: roleData.permissions,
+            mentionable: roleData.mentionable
         });
     });
     return;
@@ -80,7 +74,7 @@ export async function channels(guild: Guild, backupData: BackupData) {
  */
 export async function afk(guild: Guild, backupData: BackupData) {
     if (backupData.afk) {
-        guild.setAFKChannel(guild.channels.cache.find(ch => ch.name === backupData.afk.name));
+        guild.setAFKChannel(guild.channels.find(ch => ch.name === backupData.afk.name));
         guild.setAFKTimeout(backupData.afk.timeout);
     }
     return;
@@ -92,9 +86,9 @@ export async function afk(guild: Guild, backupData: BackupData) {
 export async function emojis(guild: Guild, backupData: BackupData) {
     backupData.emojis.forEach(emoji => {
         if (emoji.url) {
-            guild.emojis.create(emoji.url, emoji.name);
+            guild.createEmoji(emoji.url, emoji.name);
         } else if (emoji.base64) {
-            guild.emojis.create(new Buffer(emoji.base64, 'base64'), emoji.name);
+            guild.createEmoji(new Buffer(emoji.base64, 'base64'), emoji.name);
         }
     });
     return;
@@ -105,9 +99,7 @@ export async function emojis(guild: Guild, backupData: BackupData) {
  */
 export async function bans(guild: Guild, backupData: BackupData) {
     backupData.bans.forEach(ban => {
-        guild.members.ban(ban.id, {
-            reason: ban.reason
-        });
+        guild.ban(ban.id);
     });
     return;
 }
@@ -119,7 +111,7 @@ export async function embedChannel(guild: Guild, backupData: BackupData) {
     if (backupData.embed.channel) {
         guild.setEmbed({
             enabled: backupData.embed.enabled,
-            channel: guild.channels.cache.find(ch => ch.name === backupData.embed.channel)
+            channel: guild.channels.find(ch => ch.name === backupData.embed.channel)
         });
     }
     return;

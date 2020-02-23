@@ -1,10 +1,10 @@
 import {
     CategoryChannel,
+    ChannelCreationOverwrites,
+    ChannelData,
     Collection,
     Guild,
-    GuildCreateChannelOptions,
     Message,
-    OverwriteData,
     Snowflake,
     TextChannel,
     VoiceChannel
@@ -20,12 +20,12 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
         .filter(p => p.type === 'role')
         .forEach(perm => {
             // For each overwrites permission
-            const role = channel.guild.roles.cache.get(perm.id);
+            const role = channel.guild.roles.get(perm.id);
             if (role) {
                 permissions.push({
                     roleName: role.name,
-                    allow: perm.allow.bitfield,
-                    deny: perm.deny.bitfield
+                    allow: perm.allow,
+                    deny: perm.deny
                 });
             }
         });
@@ -67,8 +67,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
         };
         /* Fetch channel messages */
         const messageCount = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-        channel.messages
-            .fetch({ limit: messageCount })
+        channel.fetchMessages({ limit: messageCount })
             .then((fetched: Collection<Snowflake, Message>) => {
                 fetched.forEach(msg => {
                     if (!msg.author || channelData.messages.length >= messageCount) {
@@ -76,7 +75,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                     }
                     channelData.messages.push({
                         username: msg.author.username,
-                        avatar: msg.author.displayAvatarURL(),
+                        avatar: msg.author.displayAvatarURL,
                         content: msg.cleanContent
                     });
                 });
@@ -95,11 +94,11 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>(resolve => {
-        guild.channels.create(categoryData.name, { type: 'category' }).then(async category => {
+        guild.createChannel(categoryData.name, { type: 'category' }).then(async category => {
             // When the category is created
-            const finalPermissions: OverwriteData[] = [];
+            const finalPermissions: ChannelCreationOverwrites[] = [];
             categoryData.permissions.forEach(perm => {
-                const role = guild.roles.cache.find(r => r.name === perm.roleName);
+                const role = guild.roles.find(r => r.name === perm.roleName);
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
@@ -108,11 +107,11 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
                     });
                 }
             });
-            await category.overwritePermissions({
+            await category.replacePermissionOverwrites({
                 // Update category permissions
-                permissionOverwrites: finalPermissions
+                overwrites: finalPermissions
             });
-            resolve(category); // Return the category
+            resolve(category as CategoryChannel); // Return the category
         });
     });
 }
@@ -126,7 +125,7 @@ export async function loadChannel(
     category?: CategoryChannel
 ) {
     return new Promise(async resolve => {
-        const createOptions: GuildCreateChannelOptions = {
+        const createOptions: ChannelData = {
             type: null,
             parent: category
         };
@@ -139,11 +138,11 @@ export async function loadChannel(
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
             createOptions.type = 'voice';
         }
-        guild.channels.create(channelData.name, createOptions).then(async channel => {
+        guild.createChannel(channelData.name, createOptions).then(async channel => {
             /* Update channel permissions */
-            const finalPermissions: OverwriteData[] = [];
+            const finalPermissions: ChannelCreationOverwrites[] = [];
             channelData.permissions.forEach(perm => {
-                const role = guild.roles.cache.find(r => r.name === perm.roleName);
+                const role = guild.roles.find(r => r.name === perm.roleName);
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
@@ -152,16 +151,14 @@ export async function loadChannel(
                     });
                 }
             });
-            await channel.overwritePermissions({
+            await channel.replacePermissionOverwrites({
                 // Update category permissions
-                permissionOverwrites: finalPermissions
+                overwrites: finalPermissions
             });
             /* Load messages */
             if (channelData.type === 'text') {
                 (channel as TextChannel)
-                    .createWebhook('MessagesBackup', {
-                        avatar: channel.client.user.displayAvatarURL()
-                    })
+                    .createWebhook('MessagesBackup', channel.client.user.displayAvatarURL)
                     .then(async webhook => {
                         const messages = (channelData as TextChannelData).messages
                             .filter(m => m.content.length > 0)
@@ -185,15 +182,15 @@ export async function loadChannel(
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
 export async function clearGuild(guild: Guild) {
-    guild.roles.cache
+    guild.roles
         .filter(role => !role.managed && role.editable && role.id !== guild.id)
         .forEach(role => {
             role.delete().catch(() => {});
         });
-    guild.channels.cache.forEach(channel => {
+    guild.channels.forEach(channel => {
         channel.delete().catch(() => {});
     });
-    guild.emojis.cache.forEach(emoji => {
+    guild.emojis.forEach(emoji => {
         emoji.delete().catch(() => {});
     });
     const webhooks = await guild.fetchWebhooks();
@@ -201,8 +198,30 @@ export async function clearGuild(guild: Guild) {
         webhook.delete().catch(() => {});
     });
     const bans = await guild.fetchBans();
-    bans.forEach(ban => {
-        guild.members.unban(ban.user).catch(() => {});
+    bans.forEach(user => {
+        if(!user.id) return;
+        guild.unban(user.id).catch(() => {});
     });
+    const integrations = await guild.fetchIntegrations();
+    integrations.forEach((integration) => {
+        integration.delete();
+    });
+    guild.setAFKChannel(null);
+    guild.setAFKTimeout(60*5);
+    guild.setIcon(null);
+    guild.setBanner(null).catch(() => {});
+    guild.setSplash(null).catch(() => {});
+    guild.setDefaultMessageNotifications("MENTIONS");
+    guild.setEmbed({
+        enabled: false,
+        channel: null
+    });
+    guild.setExplicitContentFilter(0);
+    guild.setSystemChannel(null);
+    guild.setSystemChannelFlags([
+        "WELCOME_MESSAGE_DISABLED",
+        "BOOST_MESSAGE_DISABLED"
+    ]);
+    guild.setVerificationLevel(0);
     return;
 }
