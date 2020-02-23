@@ -213,5 +213,26 @@ export async function clearGuild(guild: Guild) {
     bans.forEach(ban => {
         guild.members.unban(ban.user).catch(() => {});
     });
+    const integrations = await guild.fetchIntegrations();
+    integrations.forEach((integration) => {
+        integration.delete();
+    });
+    guild.setAFKChannel(null);
+    guild.setAFKTimeout(60*5);
+    guild.setIcon(null);
+    guild.setBanner(null).catch(() => {});
+    guild.setSplash(null).catch(() => {});
+    guild.setDefaultMessageNotifications("MENTIONS");
+    guild.setEmbed({
+        enabled: false,
+        channel: null
+    });
+    guild.setExplicitContentFilter(0);
+    guild.setSystemChannel(null);
+    guild.setSystemChannelFlags([
+        "WELCOME_MESSAGE_DISABLED",
+        "BOOST_MESSAGE_DISABLED"
+    ]);
+    guild.setVerificationLevel(0);
     return;
 }
