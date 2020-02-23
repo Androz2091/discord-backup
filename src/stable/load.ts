@@ -1,4 +1,4 @@
-import { Guild, DefaultMessageNotifications } from 'discord.js';
+import { Guild } from 'discord.js';
 import { BackupData } from '../types';
 import { loadCategory, loadChannel } from './util';
 

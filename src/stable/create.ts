@@ -18,15 +18,20 @@ import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } 
  * @returns {Promise<BanData[]>} The banned members
  */
 export async function getBans(guild: Guild) {
-    const bans: BanData[] = [];
-    const cases = await guild.fetchBans(); // Gets the list of the banned members
-    cases.forEach(user => {
-        if(!user.id) return;
-        bans.push({
-            id: user.id // Banned member ID
+    return new Promise<BanData[]>((resolve, reject) => {
+        const bans: BanData[] = [];
+        guild.fetchBans().then((cases) => { // Gets the list of the banned members
+            cases.forEach(user => {
+                if(!user.id) return;
+                bans.push({
+                    id: user.id // Banned member ID
+                });
+            });
+            resolve(bans)
+        }).catch(() => {
+            resolve(bans);
         });
     });
-    return bans;
 }
 
 /**
