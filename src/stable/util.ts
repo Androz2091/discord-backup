@@ -134,7 +134,7 @@ export async function loadChannel(
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type = 'text';
         } else if (channelData.type === 'voice') {
-            createOptions.bitrate = (channelData as VoiceChannelData).bitrate;
+            createOptions.bitrate = (channelData as VoiceChannelData).bitrate*1000;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
             createOptions.type = 'voice';
         }
