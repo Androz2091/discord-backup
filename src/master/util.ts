@@ -1,5 +1,6 @@
 import {
     CategoryChannel,
+    ChannelLogsQueryOptions,
     Collection,
     Guild,
     GuildCreateChannelOptions,
@@ -66,12 +67,20 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
             messages: []
         };
         /* Fetch channel messages */
-        const messageCount = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-        channel.messages
-            .fetch({ limit: messageCount })
-            .then((fetched: Collection<Snowflake, Message>) => {
+        const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
+        let fetchOptions: ChannelLogsQueryOptions = { limit: 100 };
+        let lastMessageId: Snowflake;
+        let fetchComplete: boolean = false;
+        try {
+            while (!fetchComplete) {
+                if (lastMessageId)
+                    fetchOptions.before = lastMessageId;
+                let fetched: Collection<Snowflake, Message> = await channel.messages.fetch(fetchOptions);
+                if (fetched.size == 0) break;
+                lastMessageId = fetched.last().id;
                 fetched.forEach(msg => {
                     if (!msg.author || channelData.messages.length >= messageCount) {
+                        fetchComplete = true;
                         return;
                     }
                     channelData.messages.push({
@@ -80,13 +89,13 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                         content: msg.cleanContent
                     });
                 });
-                /* Return channel data */
-                resolve(channelData);
-            })
-            .catch(() => {
-                channelData.messages = [];
-                resolve(channelData);
-            });
+            }
+            /* Return channel data */
+            resolve(channelData);
+        }
+        catch {
+            resolve(channelData);
+        }
     });
 }
 
