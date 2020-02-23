@@ -92,25 +92,22 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
                     if (options && options.saveImages && options.saveImages === 'base64') {
                         const res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
                         backupData.iconBase64 = Buffer.from(res.data, 'binary').toString('base64');
-                    } else {
-                        backupData.iconURL = guild.iconURL();
                     }
+                    backupData.iconURL = guild.iconURL();
                 }
                 if (guild.splashURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
                         const res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
                         backupData.splashBase64 = Buffer.from(res.data, 'binary').toString('base64');
-                    } else {
-                        backupData.splashURL = guild.splashURL();
                     }
+                    backupData.splashURL = guild.splashURL();
                 }
                 if (guild.bannerURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
                         const res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
                         backupData.bannerBase64 = Buffer.from(res.data, 'binary').toString('base64');
-                    } else {
-                        backupData.bannerURL = guild.bannerURL();
                     }
+                    backupData.bannerURL = guild.bannerURL();
                 }
                 if (!options || !(options.doNotBackup || []).includes('bans')) {
                     // Backup bans
