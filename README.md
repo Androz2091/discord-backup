@@ -135,7 +135,7 @@ backup.create(guild, {
 });
 ```
 
-**maxMessagesPerChannel**: Maximum of messages to save in each channel. "0" won't restore any message.  
+**maxMessagesPerChannel**: Maximum of messages to save in each channel. "0" won't save any messages.
 **jsonSave**: Whether to save the backup into a json file. You will have to save the backup data in your own db to load it later.  
 **jsonBeautify**: Whether you want your json backup pretty formatted.  
 **doNotBackup**: Things you don't want to backup. Available items are: `roles`, `channels`, `emojis`, `bans`.  
@@ -153,6 +153,7 @@ backup.create(backupData, guild, {
 ```
 
 **clearGuildBeforeRestore**: Whether to clear the guild (roles, channels, etc... will be deleted) before the backup restoration (recommended).
+**maxMessagesPerChannel**: Maximum of messages to restore in each channel. "0" won't restore any messages.
 
 ## Example Bot
 
