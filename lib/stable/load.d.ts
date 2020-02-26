@@ -1,5 +1,5 @@
 import { Guild } from 'discord.js';
-import { BackupData } from '../types';
+import { BackupData, LoadOptions } from '../types';
 /**
  * Restores the guild configuration
  */
@@ -11,7 +11,7 @@ export declare function roles(guild: Guild, backupData: BackupData): Promise<voi
 /**
  * Restore the guild channels
  */
-export declare function channels(guild: Guild, backupData: BackupData): Promise<void>;
+export declare function channels(guild: Guild, backupData: BackupData, options?: LoadOptions): Promise<void>;
 /**
  * Restore the afk configuration
  */

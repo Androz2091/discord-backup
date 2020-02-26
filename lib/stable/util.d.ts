@@ -1,5 +1,5 @@
 import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
-import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData } from '../types';
+import { CategoryData, ChannelPermissionsData, CreateOptions, LoadOptions, TextChannelData, VoiceChannelData } from '../types';
 /**
  * Gets the permissions for a channel
  */
@@ -19,7 +19,7 @@ export declare function loadCategory(categoryData: CategoryData, guild: Guild): 
 /**
  * Create a channel and returns it
  */
-export declare function loadChannel(channelData: TextChannelData | VoiceChannelData, guild: Guild, category?: CategoryChannel): Promise<unknown>;
+export declare function loadChannel(channelData: TextChannelData | VoiceChannelData, guild: Guild, category?: CategoryChannel, options?: LoadOptions): Promise<unknown>;
 /**
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
