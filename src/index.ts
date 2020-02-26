@@ -167,7 +167,7 @@ export const load = async (backup: string | BackupData, guild: Guild, options?: 
                     // Restore guild roles
                     await loadMaster.roles(guild, backupData);
                     // Restore guild channels
-                    await loadMaster.channels(guild, backupData);
+                    await loadMaster.channels(guild, backupData, options);
                     // Restore afk channel and timeout
                     await loadMaster.afk(guild, backupData);
                     // Restore guild emojis

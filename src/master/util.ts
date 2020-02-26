@@ -10,7 +10,7 @@ import {
     TextChannel,
     VoiceChannel
 } from 'discord.js';
-import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData } from '../types';
+import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData, LoadOptions } from '../types';
 
 /**
  * Gets the permissions for a channel
@@ -132,7 +132,8 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
 export async function loadChannel(
     channelData: TextChannelData | VoiceChannelData,
     guild: Guild,
-    category?: CategoryChannel
+    category?: CategoryChannel,
+    options?: LoadOptions
 ) {
     return new Promise(async resolve => {
         const createOptions: GuildCreateChannelOptions = {
@@ -175,11 +176,14 @@ export async function loadChannel(
                         const messages = (channelData as TextChannelData).messages
                             .filter(m => m.content.length > 0)
                             .reverse();
+                        let i = 0;
                         for (const msg of messages) {
+                            if (i === options.maxMessagesPerChannel) break;
                             webhook.send(msg.content, {
                                 username: msg.username,
                                 avatarURL: msg.avatar
                             });
+                            i++;
                         }
                         resolve(channel); // Return the channel
                     });
