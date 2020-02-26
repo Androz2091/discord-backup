@@ -10,7 +10,14 @@ import {
     TextChannel,
     VoiceChannel
 } from 'discord.js';
-import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData, LoadOptions } from '../types';
+import {
+    CategoryData,
+    ChannelPermissionsData,
+    CreateOptions,
+    LoadOptions,
+    TextChannelData,
+    VoiceChannelData
+} from '../types';
 
 /**
  * Gets the permissions for a channel
@@ -68,15 +75,18 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
         };
         /* Fetch channel messages */
         const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-        let fetchOptions: ChannelLogsQueryOptions = { limit: 100 };
+        const fetchOptions: ChannelLogsQueryOptions = { limit: 100 };
         let lastMessageId: Snowflake;
         let fetchComplete: boolean = false;
         try {
             while (!fetchComplete) {
-                if (lastMessageId)
+                if (lastMessageId) {
                     fetchOptions.before = lastMessageId;
-                let fetched: Collection<Snowflake, Message> = await channel.messages.fetch(fetchOptions);
-                if (fetched.size == 0) break;
+                }
+                const fetched: Collection<Snowflake, Message> = await channel.messages.fetch(fetchOptions);
+                if (fetched.size === 0) {
+                    break;
+                }
                 lastMessageId = fetched.last().id;
                 fetched.forEach(msg => {
                     if (!msg.author || channelData.messages.length >= messageCount) {
@@ -92,8 +102,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
             }
             /* Return channel data */
             resolve(channelData);
-        }
-        catch {
+        } catch {
             resolve(channelData);
         }
     });
@@ -178,7 +187,9 @@ export async function loadChannel(
                             .reverse();
                         let i = 0;
                         for (const msg of messages) {
-                            if (i === options.maxMessagesPerChannel) break;
+                            if (i === options.maxMessagesPerChannel) {
+                                break;
+                            }
                             webhook.send(msg.content, {
                                 username: msg.username,
                                 avatarURL: msg.avatar
@@ -218,25 +229,22 @@ export async function clearGuild(guild: Guild) {
         guild.members.unban(ban.user).catch(() => {});
     });
     const integrations = await guild.fetchIntegrations();
-    integrations.forEach((integration) => {
+    integrations.forEach(integration => {
         integration.delete();
     });
     guild.setAFKChannel(null);
-    guild.setAFKTimeout(60*5);
+    guild.setAFKTimeout(60 * 5);
     guild.setIcon(null);
     guild.setBanner(null).catch(() => {});
     guild.setSplash(null).catch(() => {});
-    guild.setDefaultMessageNotifications("MENTIONS");
+    guild.setDefaultMessageNotifications('MENTIONS');
     guild.setEmbed({
         enabled: false,
         channel: null
     });
     guild.setExplicitContentFilter(0);
     guild.setSystemChannel(null);
-    guild.setSystemChannelFlags([
-        "WELCOME_MESSAGE_DISABLED",
-        "BOOST_MESSAGE_DISABLED"
-    ]);
+    guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
     guild.setVerificationLevel(0);
     return;
 }
