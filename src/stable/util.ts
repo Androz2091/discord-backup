@@ -9,7 +9,14 @@ import {
     TextChannel,
     VoiceChannel
 } from 'discord.js';
-import { CategoryData, ChannelPermissionsData, CreateOptions, TextChannelData, VoiceChannelData } from '../types';
+import {
+    CategoryData,
+    ChannelPermissionsData,
+    CreateOptions,
+    LoadOptions,
+    TextChannelData,
+    VoiceChannelData
+} from '../types';
 
 /**
  * Gets the permissions for a channel
@@ -67,7 +74,8 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
         };
         /* Fetch channel messages */
         const messageCount = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-        channel.fetchMessages({ limit: messageCount })
+        channel
+            .fetchMessages({ limit: messageCount })
             .then((fetched: Collection<Snowflake, Message>) => {
                 fetched.forEach(msg => {
                     if (!msg.author || channelData.messages.length >= messageCount) {
@@ -122,7 +130,8 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
 export async function loadChannel(
     channelData: TextChannelData | VoiceChannelData,
     guild: Guild,
-    category?: CategoryChannel
+    category?: CategoryChannel,
+    options?: LoadOptions
 ) {
     return new Promise(async resolve => {
         const createOptions: ChannelData = {
@@ -134,7 +143,7 @@ export async function loadChannel(
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type = 'text';
         } else if (channelData.type === 'voice') {
-            createOptions.bitrate = (channelData as VoiceChannelData).bitrate*1000;
+            createOptions.bitrate = (channelData as VoiceChannelData).bitrate * 1000;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
             createOptions.type = 'voice';
         }
@@ -163,11 +172,13 @@ export async function loadChannel(
                         const messages = (channelData as TextChannelData).messages
                             .filter(m => m.content.length > 0)
                             .reverse();
+                        let i = 0;
                         for (const msg of messages) {
                             webhook.send(msg.content, {
                                 username: msg.username,
                                 avatarURL: msg.avatar
                             });
+                            i++;
                         }
                         resolve(channel); // Return the channel
                     });
@@ -199,29 +210,28 @@ export async function clearGuild(guild: Guild) {
     });
     const bans = await guild.fetchBans();
     bans.forEach(user => {
-        if(!user.id) return;
+        if (!user.id) {
+            return;
+        }
         guild.unban(user.id).catch(() => {});
     });
     const integrations = await guild.fetchIntegrations();
-    integrations.forEach((integration) => {
+    integrations.forEach(integration => {
         integration.delete();
     });
     guild.setAFKChannel(null);
-    guild.setAFKTimeout(60*5);
+    guild.setAFKTimeout(60 * 5);
     guild.setIcon(null);
     guild.setBanner(null).catch(() => {});
     guild.setSplash(null).catch(() => {});
-    guild.setDefaultMessageNotifications("MENTIONS");
+    guild.setDefaultMessageNotifications('MENTIONS');
     guild.setEmbed({
         enabled: false,
         channel: null
     });
     guild.setExplicitContentFilter(0);
     guild.setSystemChannel(null);
-    guild.setSystemChannelFlags([
-        "WELCOME_MESSAGE_DISABLED",
-        "BOOST_MESSAGE_DISABLED"
-    ]);
+    guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
     guild.setVerificationLevel(0);
     return;
 }

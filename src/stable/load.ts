@@ -1,5 +1,5 @@
 import { Guild } from 'discord.js';
-import { BackupData } from '../types';
+import { BackupData, LoadOptions } from '../types';
 import { loadCategory, loadChannel } from './util';
 
 /**
@@ -55,16 +55,16 @@ export async function roles(guild: Guild, backupData: BackupData) {
 /**
  * Restore the guild channels
  */
-export async function channels(guild: Guild, backupData: BackupData) {
+export async function channels(guild: Guild, backupData: BackupData, options?: LoadOptions) {
     backupData.channels.categories.forEach(categoryData => {
         loadCategory(categoryData, guild).then(createdCategory => {
             categoryData.children.forEach(channelData => {
-                loadChannel(channelData, guild, createdCategory);
+                loadChannel(channelData, guild, createdCategory, options);
             });
         });
     });
     backupData.channels.others.forEach(channelData => {
-        loadChannel(channelData, guild, null);
+        loadChannel(channelData, guild, null, options);
     });
     return;
 }
