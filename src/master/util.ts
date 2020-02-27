@@ -182,19 +182,15 @@ export async function loadChannel(
                         avatar: channel.client.user.displayAvatarURL()
                     })
                     .then(async webhook => {
-                        const messages = (channelData as TextChannelData).messages
+                        let messages = (channelData as TextChannelData).messages
                             .filter(m => m.content.length > 0)
                             .reverse();
-                        let i = 0;
+                        messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
-                            if (i === options.maxMessagesPerChannel) {
-                                break;
-                            }
                             webhook.send(msg.content, {
                                 username: msg.username,
                                 avatarURL: msg.avatar
                             });
-                            i++;
                         }
                         resolve(channel); // Return the channel
                     });
