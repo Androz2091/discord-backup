@@ -65,7 +65,16 @@ export const fetch = (backupID: string) => {
 /**
  * Creates a new backup and saves it to the storage
  */
-export const create = async (guild: Guild, options?: CreateOptions) => {
+export const create = async (
+    guild: Guild,
+    options: CreateOptions = {
+        maxMessagesPerChannel: 10,
+        jsonSave: true,
+        jsonBeautify: true,
+        doNotBackup: [],
+        saveImages: ''
+    }
+) => {
     return new Promise<BackupData>(async (resolve, reject) => {
         if (master) {
             try {
