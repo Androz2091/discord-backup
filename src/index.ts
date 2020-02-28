@@ -149,7 +149,14 @@ export const create = async (guild: Guild, options?: CreateOptions) => {
 /**
  * Loads a backup for a guild
  */
-export const load = async (backup: string | BackupData, guild: Guild, options?: LoadOptions) => {
+export const load = async (
+    backup: string | BackupData,
+    guild: Guild,
+    options: LoadOptions = {
+        clearGuildBeforeRestore: false,
+        maxMessagesPerChannel: 10
+    }
+) => {
     return new Promise(async (resolve, reject) => {
         if (!guild) {
             return reject('Invalid guild');
@@ -158,7 +165,7 @@ export const load = async (backup: string | BackupData, guild: Guild, options?: 
             const backupData: BackupData = typeof backup === 'string' ? await getBackupData(backup) : backup;
             if (master) {
                 try {
-                    if (!options || options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
+                    if (options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
                         // Clear the guild
                         await utilMaster.clearGuild(guild);
                     }

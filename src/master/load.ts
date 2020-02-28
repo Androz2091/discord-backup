@@ -61,7 +61,7 @@ export async function roles(guild: Guild, backupData: BackupData) {
 /**
  * Restore the guild channels
  */
-export async function channels(guild: Guild, backupData: BackupData, options?: LoadOptions) {
+export async function channels(guild: Guild, backupData: BackupData, options: LoadOptions) {
     backupData.channels.categories.forEach(categoryData => {
         loadCategory(categoryData, guild).then(createdCategory => {
             categoryData.children.forEach(channelData => {
