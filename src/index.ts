@@ -162,7 +162,7 @@ export const load = async (
     backup: string | BackupData,
     guild: Guild,
     options: LoadOptions = {
-        clearGuildBeforeRestore: false,
+        clearGuildBeforeRestore: true,
         maxMessagesPerChannel: 10
     }
 ) => {
