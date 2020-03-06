@@ -126,10 +126,7 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
                     });
                 }
             });
-            await category.overwritePermissions({
-                // Update category permissions
-                permissionOverwrites: finalPermissions
-            });
+            await category.overwritePermissions(finalPermissions);
             resolve(category); // Return the category
         });
     });
@@ -171,10 +168,7 @@ export async function loadChannel(
                     });
                 }
             });
-            await channel.overwritePermissions({
-                // Update category permissions
-                permissionOverwrites: finalPermissions
-            });
+            await channel.overwritePermissions(finalPermissions);
             /* Load messages */
             if (channelData.type === 'text') {
                 (channel as TextChannel)
@@ -238,9 +232,9 @@ export async function clearGuild(guild: Guild) {
         enabled: false,
         channel: null
     });
-    guild.setExplicitContentFilter(0);
+    guild.setExplicitContentFilter('DISABLED');
     guild.setSystemChannel(null);
     guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
-    guild.setVerificationLevel(0);
+    guild.setVerificationLevel('NONE');
     return;
 }

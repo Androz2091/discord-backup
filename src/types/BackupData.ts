@@ -1,4 +1,10 @@
-import { DefaultMessageNotifications, RoleData, Snowflake } from 'discord.js';
+import {
+    DefaultMessageNotifications,
+    ExplicitContentFilterLevel,
+    RoleData,
+    Snowflake,
+    VerificationLevel
+} from 'discord.js';
 import { AfkData, BanData, ChannelsData, EmbedData, EmojiData } from './';
 
 export interface BackupData {
@@ -6,8 +12,8 @@ export interface BackupData {
     iconURL?: string;
     iconBase64?: string;
     region: string;
-    verificationLevel: number;
-    explicitContentFilter: number;
+    verificationLevel: VerificationLevel;
+    explicitContentFilter: ExplicitContentFilterLevel;
     defaultMessageNotifications: DefaultMessageNotifications | number;
     afk?: AfkData;
     embed: EmbedData;
