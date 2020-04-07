@@ -151,7 +151,13 @@ export async function loadChannel(
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type = 'text';
         } else if (channelData.type === 'voice') {
-            createOptions.bitrate = (channelData as VoiceChannelData).bitrate;
+            // Downgrade bitrate
+            const maxBitrate = [ 64000, 128000, 256000, 384000 ];
+            let bitrate = (channelData as VoiceChannelData).bitrate;
+            while(bitrate > maxBitrate[guild.premiumTier]){
+                bitrate = maxBitrate[maxBitrate.indexOf(guild.premiumTier)-1];
+            }
+            createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
             createOptions.type = 'voice';
         }
