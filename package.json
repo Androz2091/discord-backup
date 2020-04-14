@@ -37,7 +37,7 @@
   "devDependencies": {
     "@types/node": "^13.1.2",
     "@types/ws": "^7.2.4",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.4",
     "tslint": "^6.1.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.4"
