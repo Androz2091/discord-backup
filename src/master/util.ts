@@ -97,6 +97,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                         username: msg.author.username,
                         avatar: msg.author.displayAvatarURL(),
                         content: msg.cleanContent,
+                        embeds: msg.embeds,
                         pinned: msg.pinned
                     });
                 });
@@ -184,13 +185,14 @@ export async function loadChannel(
                     })
                     .then(async webhook => {
                         let messages = (channelData as TextChannelData).messages
-                            .filter(m => m.content.length > 0)
+                            .filter(m => m.content.length > 0 || m.embeds.length > 0)
                             .reverse();
                         messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
                             const sentMsg = await webhook.send(msg.content, {
                                 username: msg.username,
-                                avatarURL: msg.avatar
+                                avatarURL: msg.avatar,
+                                embeds: msg.embeds
                             });
                             if (msg.pinned)
                                 await sentMsg.pin();
