@@ -37,6 +37,7 @@ export async function getBans(guild: Guild) {
 export async function getRoles(guild: Guild) {
     const roles: RoleData[] = [];
     guild.roles.cache
+        .filter((role) => !role.managed)
         .sort((a, b) => b.position - a.position)
         .forEach(role => {
             if (role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')) {
