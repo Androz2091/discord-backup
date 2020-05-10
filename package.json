@@ -32,7 +32,7 @@
   "homepage": "https://github.com/Androz2091/discord-backup#readme",
   "dependencies": {
     "axios": "^0.19.0",
-    "discord.js": "discordjs/discord.js#11.5-dev"
+    "discord.js": "11.6"
   },
   "devDependencies": {
     "@types/node": "^13.1.2",
