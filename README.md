@@ -8,10 +8,10 @@
 
 Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows you to easily manage discord server backups.
 
-*   Unlimited backups!
-*   Backup creation takes less than 10 seconds!
-*   Even restores messages with webhooks!
-*   And restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
+* Unlimited backups!
+* Backup creation takes less than 10 seconds!
+* Even restores messages with webhooks!
+* And restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
 
 ## Changelog
 
@@ -42,6 +42,7 @@ backup.create(Guild, options).then((backupData) => {
     console.log(backupData.id); // NSJH2
 });
 ```
+
 Click [here](#create-advanced) to learn more about **backup options**.
 
 ### Load
@@ -227,10 +228,11 @@ client.on("message", async message => {
                     // When the backup is loaded, delete them from the server
                     backup.remove(backupID);
                 }).catch((err) => {
-                    // If an error occurenced
-                    return message.author.send(":x: | Sorry, an error occurenced... Please check that I have administrator permissions!");
+                    // If an error occurred
+                    return message.author.send(":x: | Sorry, an error occurred... Please check that I have administrator permissions!");
                 });
         }).catch((err) => {
+            console.log(err);
             // if the backup wasn't found
             return message.channel.send(":x: | No backup found for `"+backupID+"`!");
         });
