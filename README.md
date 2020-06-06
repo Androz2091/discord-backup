@@ -148,7 +148,7 @@ As you can see, you're able to load a backup from your own data instead of from 
 
 ```js
 const backup = require("discord-backup");
-backup.create(backupData, guild, {
+backup.load(backupData, guild, {
     clearGuildBeforeRestore: true
 });
 ```
