@@ -98,6 +98,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                         avatar: msg.author.displayAvatarURL(),
                         content: msg.cleanContent,
                         embeds: msg.embeds,
+                        attachments: msg.attachments,
                         pinned: msg.pinned
                     });
                 });
@@ -185,14 +186,22 @@ export async function loadChannel(
                     })
                     .then(async webhook => {
                         let messages = (channelData as TextChannelData).messages
-                            .filter(m => m.content.length > 0 || m.embeds.length > 0)
+                            .filter(m => m.content.length > 0 || m.embeds.length > 0 || m.attachments.length > 0)
                             .reverse();
                         messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
+                            let files = [];
+                            if (msg.attachments.length > 0) {
+                                msg.attachments.forEach(attachment => {
+                                    files.push(attachment.url)
+                                });
+                            }
+                            
                             const sentMsg = await webhook.send(msg.content, {
                                 username: msg.username,
                                 avatarURL: msg.avatar,
-                                embeds: msg.embeds
+                                embeds: msg.embeds,
+                                files: files
                             });
                             if (msg.pinned)
                                 await sentMsg.pin();
