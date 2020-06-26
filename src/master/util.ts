@@ -202,7 +202,7 @@ export async function loadChannel(
                                 avatarURL: msg.avatar,
                                 embeds: msg.embeds,
                                 files: files
-                            });
+                            }).catch(console.log);
                             if (msg.pinned)
                                 await sentMsg.pin();
                         }
