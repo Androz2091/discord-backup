@@ -98,7 +98,12 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                         avatar: msg.author.displayAvatarURL(),
                         content: msg.cleanContent,
                         embeds: msg.embeds,
-                        attachments: msg.attachments,
+                        files: msg.attachments.map((a) => {
+                            return {
+                                name: a.name,
+                                attachment: a.url
+                            }
+                        }),
                         pinned: msg.pinned
                     });
                 });
@@ -186,26 +191,19 @@ export async function loadChannel(
                     })
                     .then(async webhook => {
                         let messages = (channelData as TextChannelData).messages
-                            .filter(m => m.content.length > 0 || m.embeds.length > 0 || m.attachments.length > 0)
+                            .filter(m => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
                             .reverse();
                         messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
-                            let files = [];
-                            if (msg.attachments.length > 0) {
-                                msg.attachments.forEach(attachment => {
-                                    files.push(attachment.url)
-                                });
-                            }
-                            
                             const sentMsg = await webhook.send(msg.content, {
                                 username: msg.username,
                                 avatarURL: msg.avatar,
                                 embeds: msg.embeds,
-                                files: files
+                                files: msg.files
                             }).catch((err) => {
                                 console.log(err.message);
                             });
-                            if (msg.pinned)
+                            if (msg.pinned && sentMsg)
                                 await sentMsg.pin();
                         }
                         resolve(channel); // Return the channel
