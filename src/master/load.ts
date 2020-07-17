@@ -43,7 +43,7 @@ export async function conf(guild: Guild, backupData: BackupData) {
  * Restore the guild roles
  */
 export async function roles(guild: Guild, backupData: BackupData) {
-    backupData.roles.forEach(roleData => {
+    backupData.roles.forEach((roleData) => {
         guild.roles.create({
             // Create the role
             data: {
@@ -62,14 +62,14 @@ export async function roles(guild: Guild, backupData: BackupData) {
  * Restore the guild channels
  */
 export async function channels(guild: Guild, backupData: BackupData, options: LoadOptions) {
-    backupData.channels.categories.forEach(categoryData => {
-        loadCategory(categoryData, guild).then(createdCategory => {
-            categoryData.children.forEach(channelData => {
+    backupData.channels.categories.forEach((categoryData) => {
+        loadCategory(categoryData, guild).then((createdCategory) => {
+            categoryData.children.forEach((channelData) => {
                 loadChannel(channelData, guild, createdCategory, options);
             });
         });
     });
-    backupData.channels.others.forEach(channelData => {
+    backupData.channels.others.forEach((channelData) => {
         loadChannel(channelData, guild, null, options);
     });
     return;
@@ -80,7 +80,7 @@ export async function channels(guild: Guild, backupData: BackupData, options: Lo
  */
 export async function afk(guild: Guild, backupData: BackupData) {
     if (backupData.afk) {
-        guild.setAFKChannel(guild.channels.cache.find(ch => ch.name === backupData.afk.name));
+        guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name));
         guild.setAFKTimeout(backupData.afk.timeout);
     }
     return;
@@ -90,7 +90,7 @@ export async function afk(guild: Guild, backupData: BackupData) {
  * Restore guild emojis
  */
 export async function emojis(guild: Guild, backupData: BackupData) {
-    backupData.emojis.forEach(emoji => {
+    backupData.emojis.forEach((emoji) => {
         if (emoji.url) {
             guild.emojis.create(emoji.url, emoji.name);
         } else if (emoji.base64) {
@@ -104,7 +104,7 @@ export async function emojis(guild: Guild, backupData: BackupData) {
  * Restore guild bans
  */
 export async function bans(guild: Guild, backupData: BackupData) {
-    backupData.bans.forEach(ban => {
+    backupData.bans.forEach((ban) => {
         guild.members.ban(ban.id, {
             reason: ban.reason
         });
@@ -119,7 +119,7 @@ export async function embedChannel(guild: Guild, backupData: BackupData) {
     if (backupData.embed.channel) {
         guild.setEmbed({
             enabled: backupData.embed.enabled,
-            channel: guild.channels.cache.find(ch => ch.name === backupData.embed.channel)
+            channel: guild.channels.cache.find((ch) => ch.name === backupData.embed.channel)
         });
     }
     return;

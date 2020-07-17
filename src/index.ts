@@ -27,7 +27,7 @@ const getBackupData = async (backupID: string) => {
     return new Promise<BackupData>(async (resolve, reject) => {
         const files = await readdirAsync(backups); // Read "backups" directory
         // Try to get the json file
-        const file = files.filter(f => f.split('.').pop() === 'json').find(f => f === `${backupID}.json`);
+        const file = files.filter((f) => f.split('.').pop() === 'json').find((f) => f === `${backupID}.json`);
         if (file) {
             // If the file exists
             const backupData: BackupData = require(`${backups}${sep}${file}`);
@@ -46,7 +46,7 @@ const getBackupData = async (backupID: string) => {
 export const fetch = (backupID: string) => {
     return new Promise<BackupInfos>(async (resolve, reject) => {
         getBackupData(backupID)
-            .then(backupData => {
+            .then((backupData) => {
                 const size = statSync(`${backups}${sep}${backupID}.json`).size; // Gets the size of the file using fs
                 const backupInfos: BackupInfos = {
                     data: backupData,
@@ -228,7 +228,7 @@ export const remove = async (backupID: string) => {
  */
 export const list = async () => {
     const files = await readdirAsync(backups); // Read "backups" directory
-    return files.map(f => f.split('.')[0]);
+    return files.map((f) => f.split('.')[0]);
 };
 
 /**

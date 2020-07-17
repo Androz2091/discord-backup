@@ -20,7 +20,7 @@ import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } 
 export async function getBans(guild: Guild) {
     const bans: BanData[] = [];
     const cases = await guild.fetchBans(); // Gets the list of the banned members
-    cases.forEach(ban => {
+    cases.forEach((ban) => {
         bans.push({
             id: ban.user.id, // Banned member ID
             reason: ban.reason // Ban reason
@@ -39,7 +39,7 @@ export async function getRoles(guild: Guild) {
     guild.roles.cache
         .filter((role) => !role.managed)
         .sort((a, b) => b.position - a.position)
-        .forEach(role => {
+        .forEach((role) => {
             if (role.id !== (guild.roles.everyone ? guild.roles.everyone.id : '')) {
                 // If the role is not @everyone
                 const roleData = {
@@ -64,7 +64,7 @@ export async function getRoles(guild: Guild) {
  */
 export async function getEmojis(guild: Guild, options: CreateOptions) {
     const emojis: EmojiData[] = [];
-    guild.emojis.cache.forEach(async emoji => {
+    guild.emojis.cache.forEach(async (emoji) => {
         const eData: EmojiData = {
             name: emoji.name
         };
@@ -86,14 +86,14 @@ export async function getEmojis(guild: Guild, options: CreateOptions) {
  * @returns {ChannelData[]} The channels of the guild
  */
 export async function getChannels(guild: Guild, options: CreateOptions) {
-    return new Promise<ChannelsData>(async resolve => {
+    return new Promise<ChannelsData>(async (resolve) => {
         const channels: ChannelsData = {
             categories: [],
             others: []
         };
         // Gets the list of the categories and sort them by position
         const categories = guild.channels.cache
-            .filter(ch => ch.type === 'category')
+            .filter((ch) => ch.type === 'category')
             .sort((a, b) => a.position - b.position)
             .array() as CategoryChannel[];
         for (const category of categories) {
@@ -118,7 +118,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
         const others = guild.channels.cache
-            .filter(ch => !ch.parent && ch.type !== 'category')
+            .filter((ch) => !ch.parent && ch.type !== 'category')
             .sort((a, b) => a.position - b.position)
             .array();
         for (const channel of others) {

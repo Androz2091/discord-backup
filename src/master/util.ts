@@ -25,8 +25,8 @@ import {
 export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel) {
     const permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites
-        .filter(p => p.type === 'role')
-        .forEach(perm => {
+        .filter((p) => p.type === 'role')
+        .forEach((perm) => {
             // For each overwrites permission
             const role = channel.guild.roles.cache.get(perm.id);
             if (role) {
@@ -44,7 +44,7 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
  * Fetches the voice channel data that is necessary for the backup
  */
 export async function fetchVoiceChannelData(channel: VoiceChannel) {
-    return new Promise<VoiceChannelData>(async resolve => {
+    return new Promise<VoiceChannelData>(async (resolve) => {
         const channelData: VoiceChannelData = {
             type: 'voice',
             name: channel.name,
@@ -62,7 +62,7 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
  * Fetches the text channel data that is necessary for the backup
  */
 export async function fetchTextChannelData(channel: TextChannel, options: CreateOptions) {
-    return new Promise<TextChannelData>(async resolve => {
+    return new Promise<TextChannelData>(async (resolve) => {
         const channelData: TextChannelData = {
             type: 'text',
             name: channel.name,
@@ -88,7 +88,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                     break;
                 }
                 lastMessageId = fetched.last().id;
-                fetched.forEach(msg => {
+                fetched.forEach((msg) => {
                     if (!msg.author || channelData.messages.length >= messageCount) {
                         fetchComplete = true;
                         return;
@@ -102,7 +102,7 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
                             return {
                                 name: a.name,
                                 attachment: a.url
-                            }
+                            };
                         }),
                         pinned: msg.pinned
                     });
@@ -120,12 +120,12 @@ export async function fetchTextChannelData(channel: TextChannel, options: Create
  * Creates a category for the guild
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
-    return new Promise<CategoryChannel>(resolve => {
-        guild.channels.create(categoryData.name, { type: 'category' }).then(async category => {
+    return new Promise<CategoryChannel>((resolve) => {
+        guild.channels.create(categoryData.name, { type: 'category' }).then(async (category) => {
             // When the category is created
             const finalPermissions: OverwriteData[] = [];
-            categoryData.permissions.forEach(perm => {
-                const role = guild.roles.cache.find(r => r.name === perm.roleName);
+            categoryData.permissions.forEach((perm) => {
+                const role = guild.roles.cache.find((r) => r.name === perm.roleName);
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
@@ -149,7 +149,7 @@ export async function loadChannel(
     category?: CategoryChannel,
     options?: LoadOptions
 ) {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
         const createOptions: GuildCreateChannelOptions = {
             type: null,
             parent: category
@@ -160,20 +160,20 @@ export async function loadChannel(
             createOptions.type = 'text';
         } else if (channelData.type === 'voice') {
             // Downgrade bitrate
-            const maxBitrate = [ 64000, 128000, 256000, 384000 ];
+            const maxBitrate = [64000, 128000, 256000, 384000];
             let bitrate = (channelData as VoiceChannelData).bitrate;
-            while(bitrate > maxBitrate[guild.premiumTier]){
-                bitrate = maxBitrate[maxBitrate.indexOf(guild.premiumTier)-1];
+            while (bitrate > maxBitrate[guild.premiumTier]) {
+                bitrate = maxBitrate[maxBitrate.indexOf(guild.premiumTier) - 1];
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
             createOptions.type = 'voice';
         }
-        guild.channels.create(channelData.name, createOptions).then(async channel => {
+        guild.channels.create(channelData.name, createOptions).then(async (channel) => {
             /* Update channel permissions */
             const finalPermissions: OverwriteData[] = [];
-            channelData.permissions.forEach(perm => {
-                const role = guild.roles.cache.find(r => r.name === perm.roleName);
+            channelData.permissions.forEach((perm) => {
+                const role = guild.roles.cache.find((r) => r.name === perm.roleName);
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
@@ -189,22 +189,23 @@ export async function loadChannel(
                     .createWebhook('MessagesBackup', {
                         avatar: channel.client.user.displayAvatarURL()
                     })
-                    .then(async webhook => {
+                    .then(async (webhook) => {
                         let messages = (channelData as TextChannelData).messages
-                            .filter(m => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
+                            .filter((m) => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
                             .reverse();
                         messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
-                            const sentMsg = await webhook.send(msg.content, {
-                                username: msg.username,
-                                avatarURL: msg.avatar,
-                                embeds: msg.embeds,
-                                files: msg.files
-                            }).catch((err) => {
-                                console.log(err.message);
-                            });
-                            if (msg.pinned && sentMsg)
-                                await sentMsg.pin();
+                            const sentMsg = await webhook
+                                .send(msg.content, {
+                                    username: msg.username,
+                                    avatarURL: msg.avatar,
+                                    embeds: msg.embeds,
+                                    files: msg.files
+                                })
+                                .catch((err) => {
+                                    console.log(err.message);
+                                });
+                            if (msg.pinned && sentMsg) await sentMsg.pin();
                         }
                         resolve(channel); // Return the channel
                     });
@@ -220,26 +221,26 @@ export async function loadChannel(
  */
 export async function clearGuild(guild: Guild) {
     guild.roles.cache
-        .filter(role => !role.managed && role.editable && role.id !== guild.id)
-        .forEach(role => {
+        .filter((role) => !role.managed && role.editable && role.id !== guild.id)
+        .forEach((role) => {
             role.delete().catch(() => {});
         });
-    guild.channels.cache.forEach(channel => {
+    guild.channels.cache.forEach((channel) => {
         channel.delete().catch(() => {});
     });
-    guild.emojis.cache.forEach(emoji => {
+    guild.emojis.cache.forEach((emoji) => {
         emoji.delete().catch(() => {});
     });
     const webhooks = await guild.fetchWebhooks();
-    webhooks.forEach(webhook => {
+    webhooks.forEach((webhook) => {
         webhook.delete().catch(() => {});
     });
     const bans = await guild.fetchBans();
-    bans.forEach(ban => {
+    bans.forEach((ban) => {
         guild.members.unban(ban.user).catch(() => {});
     });
     const integrations = await guild.fetchIntegrations();
-    integrations.forEach(integration => {
+    integrations.forEach((integration) => {
         integration.delete();
     });
     guild.setAFKChannel(null);
