@@ -1,7 +1,7 @@
 import { Guild, SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === '12';
 
-import nodeFetch from "node-fetch";
+import fetch from 'node-fetch';
 import { sep } from 'path';
 
 import { existsSync, mkdirSync, readdir, statSync, unlinkSync, writeFile } from 'fs';
