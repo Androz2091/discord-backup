@@ -1,6 +1,4 @@
-
-import fetch from "node-fetch";
-
+import fetch from 'node-fetch';
 import { CategoryChannel, Guild, TextChannel, VoiceChannel} from 'discord.js';
 import {
     BanData,
