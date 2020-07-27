@@ -111,7 +111,7 @@ export const create = async (
                 }
                 if (guild.bannerURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        backupData.bannerBase64 = (await nodeFetch(guild.bannerURL()).then(res => res.buffer())).toString("base64");
+                        backupData.bannerBase64 = (await fetch(guild.bannerURL()).then(res => res.buffer())).toString("base64");
                     }
                     backupData.bannerURL = guild.bannerURL();
                 }
