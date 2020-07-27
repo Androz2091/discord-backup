@@ -105,7 +105,7 @@ export const create = async (
                 }
                 if (guild.splashURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        backupData.splashBase64 = (await nodeFetch(guild.splashURL()).then(res => res.buffer())).toString("base64");
+                        backupData.splashBase64 = (await fetch(guild.splashURL()).then(res => res.buffer())).toString("base64");
                     }
                     backupData.splashURL = guild.splashURL();
                 }
