@@ -99,7 +99,7 @@ export const create = async (
                 };
                 if (guild.iconURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        backupData.iconBase64 = (await nodeFetch(guild.iconURL()).then(res => res.buffer())).toString("base64");
+                        backupData.iconBase64 = (await fetch(guild.iconURL()).then(res => res.buffer())).toString("base64");
                     }
                     backupData.iconURL = guild.iconURL();
                 }
