@@ -105,7 +105,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             const children = category.children.sort((a, b) => a.position - b.position).array();
             for (const child of children) {
                 // For each child channel
-                if (child.type === 'text') {
+                if (child.type === 'text' || child.type === 'news') {
                     const channelData: TextChannelData = await fetchTextChannelData(child as TextChannel, options); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 } else {
