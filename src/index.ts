@@ -1,3 +1,5 @@
+import type { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
+
 import { Guild, SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === '12';
 
@@ -8,8 +10,6 @@ import { existsSync, mkdirSync, readdir, statSync, unlinkSync, writeFile } from 
 import { promisify } from 'util';
 const writeFileAsync = promisify(writeFile);
 const readdirAsync = promisify(readdir);
-
-import { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
 
 import * as createMaster from './master/create';
 import * as loadMaster from './master/load';

@@ -1,6 +1,4 @@
-import nodeFetch from 'node-fetch';
-import { CategoryChannel, Guild, TextChannel, VoiceChannel} from 'discord.js';
-import {
+import type {
     BanData,
     CategoryData,
     ChannelsData,
@@ -10,6 +8,8 @@ import {
     TextChannelData,
     VoiceChannelData
 } from '../types';
+import nodeFetch from 'node-fetch';
+import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 
 /**
@@ -32,7 +32,7 @@ export async function getBans(guild: Guild) {
 /**
  * Returns an array with the roles of the guild
  * @param {Guild} guild The discord guild
- * @returns {Promise<RoleData[]>} The roles of the guild
+ * @returns {Promise<RoleData[]>} The roles of the guild
  */
 export async function getRoles(guild: Guild) {
     const roles: RoleData[] = [];

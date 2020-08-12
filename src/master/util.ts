@@ -1,3 +1,11 @@
+import type {
+    CategoryData,
+    ChannelPermissionsData,
+    CreateOptions,
+    LoadOptions,
+    TextChannelData,
+    VoiceChannelData
+} from '../types';
 import {
     CategoryChannel,
     ChannelLogsQueryOptions,
@@ -10,14 +18,6 @@ import {
     TextChannel,
     VoiceChannel
 } from 'discord.js';
-import {
-    CategoryData,
-    ChannelPermissionsData,
-    CreateOptions,
-    LoadOptions,
-    TextChannelData,
-    VoiceChannelData
-} from '../types';
 
 /**
  * Gets the permissions for a channel
