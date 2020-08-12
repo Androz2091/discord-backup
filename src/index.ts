@@ -1,6 +1,6 @@
 import type { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
-
-import { Guild, SnowflakeUtil, version as djsVersion } from 'discord.js';
+import type { Guild } from 'discord.js';
+import { SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === '12';
 
 import nodeFetch from 'node-fetch';

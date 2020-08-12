@@ -1,5 +1,5 @@
-import type { BackupData, LoadOptions } from '../types';
-import { Guild } from 'discord.js';
+import type { BackupData, LoadOptions, GuildFeaturesPatched } from '../types';
+import type { Guild } from 'discord.js';
 import { loadCategory, loadChannel } from './util';
 
 /**
@@ -33,7 +33,8 @@ export async function conf(guild: Guild, backupData: BackupData) {
     if (backupData.defaultMessageNotifications) {
         guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications);
     }
-    if (backupData.explicitContentFilter) {
+    const changeableExplicitLevel = !((guild.features as GuildFeaturesPatched[]).includes('COMMUNITY'));
+    if (backupData.explicitContentFilter && changeableExplicitLevel) {
         guild.setExplicitContentFilter(backupData.explicitContentFilter);
     }
     return;

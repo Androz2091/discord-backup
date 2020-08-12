@@ -8,8 +8,8 @@ import type {
     TextChannelData,
     VoiceChannelData
 } from '../types';
+import type { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
 import nodeFetch from 'node-fetch';
-import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 
 /**

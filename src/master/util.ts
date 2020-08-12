@@ -4,9 +4,10 @@ import type {
     CreateOptions,
     LoadOptions,
     TextChannelData,
-    VoiceChannelData
+    VoiceChannelData,
+    GuildFeaturesPatched
 } from '../types';
-import {
+import type {
     CategoryChannel,
     ChannelLogsQueryOptions,
     Collection,
@@ -255,9 +256,11 @@ export async function clearGuild(guild: Guild) {
         enabled: false,
         channel: null
     });
-    guild.setExplicitContentFilter('DISABLED');
+    if(!(guild.features as GuildFeaturesPatched[]).includes('COMMUNITY')){
+        guild.setExplicitContentFilter('DISABLED');
+        guild.setVerificationLevel('NONE');
+    }
     guild.setSystemChannel(null);
     guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
-    guild.setVerificationLevel('NONE');
     return;
 }
