@@ -1,15 +1,15 @@
-import { Guild, SnowflakeUtil, version as djsVersion } from 'discord.js';
+import type { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
+import type { Guild } from 'discord.js';
+import { SnowflakeUtil, version as djsVersion } from 'discord.js';
 const master: boolean = djsVersion.split('.')[0] === '12';
 
-import axios from 'axios';
+import nodeFetch from 'node-fetch';
 import { sep } from 'path';
 
 import { existsSync, mkdirSync, readdir, statSync, unlinkSync, writeFile } from 'fs';
 import { promisify } from 'util';
 const writeFileAsync = promisify(writeFile);
 const readdirAsync = promisify(readdir);
-
-import { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
 
 import * as createMaster from './master/create';
 import * as loadMaster from './master/load';
@@ -99,22 +99,19 @@ export const create = async (
                 };
                 if (guild.iconURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        const res = await axios.get(guild.iconURL(), { responseType: 'arraybuffer' });
-                        backupData.iconBase64 = Buffer.from(res.data, 'binary').toString('base64');
+                        backupData.iconBase64 = (await nodeFetch(guild.iconURL({ dynamic: true })).then(res => res.buffer())).toString("base64");
                     }
                     backupData.iconURL = guild.iconURL();
                 }
                 if (guild.splashURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        const res = await axios.get(guild.splashURL(), { responseType: 'arraybuffer' });
-                        backupData.splashBase64 = Buffer.from(res.data, 'binary').toString('base64');
+                        backupData.splashBase64 = (await nodeFetch(guild.splashURL()).then(res => res.buffer())).toString("base64");
                     }
                     backupData.splashURL = guild.splashURL();
                 }
                 if (guild.bannerURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
-                        const res = await axios.get(guild.bannerURL(), { responseType: 'arraybuffer' });
-                        backupData.bannerBase64 = Buffer.from(res.data, 'binary').toString('base64');
+                        backupData.bannerBase64 = (await nodeFetch(guild.bannerURL()).then(res => res.buffer())).toString("base64");
                     }
                     backupData.bannerURL = guild.bannerURL();
                 }

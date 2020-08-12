@@ -1,3 +1,5 @@
+import type { GuildFeatures } from 'discord.js';
+
 export * from './AfkData';
 export * from './BackupData';
 export * from './BackupInfos';
@@ -14,3 +16,4 @@ export * from './MessageData';
 export * from './RoleData';
 export * from './TextChannelData';
 export * from './VoiceChannelData';
+export type GuildFeaturesPatched = GuildFeatures | 'COMMUNITY';

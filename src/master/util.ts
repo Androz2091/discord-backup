@@ -1,4 +1,13 @@
-import {
+import type {
+    CategoryData,
+    ChannelPermissionsData,
+    CreateOptions,
+    LoadOptions,
+    TextChannelData,
+    VoiceChannelData,
+    GuildFeaturesPatched
+} from '../types';
+import type {
     CategoryChannel,
     ChannelLogsQueryOptions,
     Collection,
@@ -8,21 +17,14 @@ import {
     OverwriteData,
     Snowflake,
     TextChannel,
-    VoiceChannel
+    VoiceChannel,
+    NewsChannel
 } from 'discord.js';
-import {
-    CategoryData,
-    ChannelPermissionsData,
-    CreateOptions,
-    LoadOptions,
-    TextChannelData,
-    VoiceChannelData
-} from '../types';
 
 /**
  * Gets the permissions for a channel
  */
-export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel) {
+export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel | NewsChannel) {
     const permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites
         .filter((p) => p.type === 'role')
@@ -61,17 +63,18 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
 /**
  * Fetches the text channel data that is necessary for the backup
  */
-export async function fetchTextChannelData(channel: TextChannel, options: CreateOptions) {
+export async function fetchTextChannelData(channel: TextChannel | NewsChannel, options: CreateOptions) {
     return new Promise<TextChannelData>(async (resolve) => {
         const channelData: TextChannelData = {
             type: 'text',
             name: channel.name,
             nsfw: channel.nsfw,
-            rateLimitPerUser: channel.rateLimitPerUser,
+            rateLimitPerUser: channel.type === 'text' ? channel.rateLimitPerUser : undefined,
             parent: channel.parent ? channel.parent.name : null,
             topic: channel.topic,
             permissions: fetchChannelPermissions(channel),
-            messages: []
+            messages: [],
+            isNews: channel.type === 'news'
         };
         /* Fetch channel messages */
         const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
@@ -157,7 +160,7 @@ export async function loadChannel(
         if (channelData.type === 'text') {
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
-            createOptions.type = 'text';
+            createOptions.type = (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'news' : 'text';
         } else if (channelData.type === 'voice') {
             // Downgrade bitrate
             const maxBitrate = [64000, 128000, 256000, 384000];
@@ -253,9 +256,11 @@ export async function clearGuild(guild: Guild) {
         enabled: false,
         channel: null
     });
-    guild.setExplicitContentFilter('DISABLED');
+    if(!(guild.features as GuildFeaturesPatched[]).includes('COMMUNITY')){
+        guild.setExplicitContentFilter('DISABLED');
+        guild.setVerificationLevel('NONE');
+    }
     guild.setSystemChannel(null);
     guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
-    guild.setVerificationLevel('NONE');
     return;
 }

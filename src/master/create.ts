@@ -1,6 +1,4 @@
-import axios from 'axios';
-import { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
-import {
+import type {
     BanData,
     CategoryData,
     ChannelsData,
@@ -10,6 +8,8 @@ import {
     TextChannelData,
     VoiceChannelData
 } from '../types';
+import type { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
+import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 
 /**
@@ -32,7 +32,7 @@ export async function getBans(guild: Guild) {
 /**
  * Returns an array with the roles of the guild
  * @param {Guild} guild The discord guild
- * @returns {Promise<RoleData[]>} The roles of the guild
+ * @returns {Promise<RoleData[]>} The roles of the guild
  */
 export async function getRoles(guild: Guild) {
     const roles: RoleData[] = [];
@@ -69,8 +69,7 @@ export async function getEmojis(guild: Guild, options: CreateOptions) {
             name: emoji.name
         };
         if (options.saveImages && options.saveImages === 'base64') {
-            const res = await axios.get(emoji.url, { responseType: 'arraybuffer' });
-            eData.base64 = Buffer.from(res.data, 'binary').toString('base64');
+            eData.base64 = (await nodeFetch(emoji.url).then(res => res.buffer())).toString("base64");
         } else {
             eData.url = emoji.url;
         }
@@ -106,7 +105,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             const children = category.children.sort((a, b) => a.position - b.position).array();
             for (const child of children) {
                 // For each child channel
-                if (child.type === 'text') {
+                if (child.type === 'text' || child.type === 'news') {
                     const channelData: TextChannelData = await fetchTextChannelData(child as TextChannel, options); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 } else {
