@@ -159,7 +159,7 @@ export async function loadChannel(
         if (channelData.type === 'text') {
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
-            createOptions.type = (channelData as TextChannelData).isNews ? 'news' : 'text';
+            createOptions.type = (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'news' : 'text';
         } else if (channelData.type === 'voice') {
             // Downgrade bitrate
             const maxBitrate = [64000, 128000, 256000, 384000];
