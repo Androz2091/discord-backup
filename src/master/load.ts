@@ -10,17 +10,17 @@ export async function conf(guild: Guild, backupData: BackupData) {
         guild.setName(backupData.name);
     }
     if (backupData.iconBase64) {
-        guild.setIcon(new Buffer(backupData.iconBase64, 'base64'));
+        guild.setIcon(Buffer.from(backupData.iconBase64, 'base64'));
     } else if (backupData.iconURL) {
         guild.setIcon(backupData.iconURL);
     }
     if (backupData.splashBase64) {
-        guild.setSplash(new Buffer(backupData.splashBase64, 'base64'));
+        guild.setSplash(Buffer.from(backupData.splashBase64, 'base64'));
     } else if (backupData.splashURL) {
         guild.setSplash(backupData.splashURL);
     }
     if (backupData.bannerBase64) {
-        guild.setBanner(new Buffer(backupData.bannerBase64, 'base64'));
+        guild.setBanner(Buffer.from(backupData.bannerBase64, 'base64'));
     } else if (backupData.bannerURL) {
         guild.setBanner(backupData.bannerURL);
     }
@@ -94,7 +94,7 @@ export async function emojis(guild: Guild, backupData: BackupData) {
         if (emoji.url) {
             guild.emojis.create(emoji.url, emoji.name);
         } else if (emoji.base64) {
-            guild.emojis.create(new Buffer(emoji.base64, 'base64'), emoji.name);
+            guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name);
         }
     });
     return;
