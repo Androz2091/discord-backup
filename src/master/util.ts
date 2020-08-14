@@ -251,7 +251,7 @@ export async function clearGuild(guild: Guild) {
     guild.setBanner(null).catch(() => {});
     guild.setSplash(null).catch(() => {});
     guild.setDefaultMessageNotifications('MENTIONS');
-    guild.setEmbed({
+    guild.setWidget({
         enabled: false,
         channel: null
     });
