@@ -16,4 +16,3 @@ export * from './MessageData';
 export * from './RoleData';
 export * from './TextChannelData';
 export * from './VoiceChannelData';
-export type GuildFeaturesPatched = GuildFeatures | 'COMMUNITY';

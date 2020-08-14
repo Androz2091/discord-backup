@@ -4,8 +4,7 @@ import type {
     CreateOptions,
     LoadOptions,
     TextChannelData,
-    VoiceChannelData,
-    GuildFeaturesPatched
+    VoiceChannelData
 } from '../types';
 import type {
     CategoryChannel,
@@ -256,7 +255,7 @@ export async function clearGuild(guild: Guild) {
         enabled: false,
         channel: null
     });
-    if(!(guild.features as GuildFeaturesPatched[]).includes('COMMUNITY')){
+    if(!guild.features.includes('COMMUNITY')){
         guild.setExplicitContentFilter('DISABLED');
         guild.setVerificationLevel('NONE');
     }
