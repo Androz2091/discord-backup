@@ -117,10 +117,10 @@ export async function bans(guild: Guild, backupData: BackupData) {
  * Restore embedChannel configuration
  */
 export async function embedChannel(guild: Guild, backupData: BackupData) {
-    if (backupData.embed.channel) {
-        guild.setEmbed({
-            enabled: backupData.embed.enabled,
-            channel: guild.channels.cache.find((ch) => ch.name === backupData.embed.channel)
+    if (backupData.widget.channel) {
+        guild.setWidget({
+            enabled: backupData.widget.enabled,
+            channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel)
         });
     }
     return;

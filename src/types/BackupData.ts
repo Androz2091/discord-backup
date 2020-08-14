@@ -5,7 +5,7 @@ import {
     Snowflake,
     VerificationLevel
 } from 'discord.js';
-import { AfkData, BanData, ChannelsData, EmbedData, EmojiData } from './';
+import { AfkData, BanData, ChannelsData, EmojiData, WidgetData } from './';
 
 export interface BackupData {
     name: string;
@@ -16,7 +16,7 @@ export interface BackupData {
     explicitContentFilter: ExplicitContentFilterLevel;
     defaultMessageNotifications: DefaultMessageNotifications | number;
     afk?: AfkData;
-    embed: EmbedData;
+    widget: WidgetData;
     splashURL?: string;
     splashBase64?: string;
     bannerURL?: string;

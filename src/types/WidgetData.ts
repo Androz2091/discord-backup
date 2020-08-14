@@ -1,4 +1,4 @@
-export interface EmbedData {
+export interface WidgetData {
     enabled: boolean;
     channel?: string;
 }

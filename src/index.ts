@@ -85,9 +85,9 @@ export const create = async (
                     explicitContentFilter: guild.explicitContentFilter,
                     defaultMessageNotifications: guild.defaultMessageNotifications,
                     afk: guild.afkChannel ? { name: guild.afkChannel.name, timeout: guild.afkTimeout } : null,
-                    embed: {
-                        enabled: guild.embedEnabled,
-                        channel: guild.embedChannel ? guild.embedChannel.name : null
+                    widget: {
+                        enabled: guild.widgetEnabled,
+                        channel: guild.widgetChannel ? guild.widgetChannel.name : null
                     },
                     channels: { categories: [], others: [] },
                     roles: [],
