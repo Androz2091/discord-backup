@@ -68,6 +68,7 @@ export const fetch = (backupID: string) => {
 export const create = async (
     guild: Guild,
     options: CreateOptions = {
+        backupID: null,
         maxMessagesPerChannel: 10,
         jsonSave: true,
         jsonBeautify: true,
@@ -95,7 +96,7 @@ export const create = async (
                     emojis: [],
                     createdTimestamp: Date.now(),
                     guildID: guild.id,
-                    id: SnowflakeUtil.generate(Date.now())
+                    id: options.backupID ?? SnowflakeUtil.generate(Date.now())
                 };
                 if (guild.iconURL()) {
                     if (options && options.saveImages && options.saveImages === 'base64') {
