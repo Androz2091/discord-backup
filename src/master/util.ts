@@ -186,7 +186,7 @@ export async function loadChannel(
             });
             await channel.overwritePermissions(finalPermissions);
             /* Load messages */
-            if (channelData.type === 'text') {
+            if (channelData.type === 'text' && (channelData as TextChannelData).messages.length > 0) {
                 (channel as TextChannel)
                     .createWebhook('MessagesBackup', {
                         avatar: channel.client.user.displayAvatarURL()
