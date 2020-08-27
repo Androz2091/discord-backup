@@ -150,9 +150,9 @@ diff@^4.0.1:
   integrity sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
 
 discord.js@^12.3.0:
-  version "12.3.0"
-  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-12.3.0.tgz#d7ecba09c4b132b30fb710dc1f2015b02f966071"
-  integrity sha512-W13DiV9d5MEV6PKIvoAKlxzqDHZ1yAKV90MOL6okdFMEx2IEkkxOuRtGGqG3tILh1Hwk1eR7O/cC4NxfItR7EA==
+  version "12.3.1"
+  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-12.3.1.tgz#8f58ac17d29b068dbfeb6c01fc7777bacd5324cf"
+  integrity sha512-mSFyV/mbvzH12UXdS4zadmeUf8IMQOo/YdunubG1wWt1xjWvtaJz/s9CGsFD2B5pTw1W/LXxxUbrQjIZ/xlUdw==
   dependencies:
     "@discordjs/collection" "^0.1.6"
     "@discordjs/form-data" "^3.0.1"
