@@ -1,6 +1,6 @@
 {
   "name": "discord-backup",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "A complete framework to facilitate server backup using discord.js v12",
   "main": "lib/index.js",
   "files": [
