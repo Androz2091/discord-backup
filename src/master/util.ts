@@ -157,6 +157,7 @@ export async function loadChannel(
             parent: category
         };
         if (channelData.type === 'text') {
+            createOptions.topic = (channelData as TextChannelData).topic;
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type = (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'news' : 'text';
