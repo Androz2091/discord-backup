@@ -7,7 +7,7 @@ import type {
     RoleData,
     TextChannelData,
     VoiceChannelData
-} from '../types';
+} from './types';
 import type { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
 import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';

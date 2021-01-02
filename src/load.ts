@@ -1,4 +1,4 @@
-import type { BackupData, LoadOptions } from '../types';
+import type { BackupData, LoadOptions } from './types';
 import type { Guild } from 'discord.js';
 import { loadCategory, loadChannel } from './util';
 
