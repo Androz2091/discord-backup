@@ -5,7 +5,7 @@ import type {
     LoadOptions,
     TextChannelData,
     VoiceChannelData
-} from '../types';
+} from './types';
 import type {
     CategoryChannel,
     ChannelLogsQueryOptions,
