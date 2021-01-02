@@ -45,16 +45,25 @@ export async function conf(guild: Guild, backupData: BackupData) {
  */
 export async function roles(guild: Guild, backupData: BackupData) {
     backupData.roles.forEach((roleData) => {
-        guild.roles.create({
-            // Create the role
-            data: {
+        if (roleData.isEveryone) {
+            guild.roles.cache.get(guild.id).edit({
                 name: roleData.name,
                 color: roleData.color,
-                hoist: roleData.hoist,
                 permissions: roleData.permissions,
                 mentionable: roleData.mentionable
-            }
-        });
+            });
+        } else {
+            guild.roles.create({
+                // Create the role
+                data: {
+                    name: roleData.name,
+                    color: roleData.color,
+                    hoist: roleData.hoist,
+                    permissions: roleData.permissions,
+                    mentionable: roleData.mentionable
+                }
+            });
+        }
     });
     return;
 }
