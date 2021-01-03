@@ -255,7 +255,7 @@ client.on("message", async message => {
                 // Displays the server from which this backup comes
                 .addField("Server ID", backupInfos.data.guildID, false)
                 // Display the size (in mb) of the backup
-                .addField("Size", `${backupInfos.size} mb`, false)
+                .addField("Size", `${backupInfos.size} kb`, false)
                 // Display when the backup was created
                 .addField("Created at", formatedDate, false)
                 .setColor("#FF0000");
