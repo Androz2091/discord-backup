@@ -25,7 +25,9 @@ Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows yo
 npm install --save discord-backup
 ```
 
-## Functions
+## Examples
+
+You can read this example bot on Github: [backups-bot](https://github.com/Androz2091/backups-bot)
 
 ### Create
 
