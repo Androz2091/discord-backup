@@ -50,7 +50,7 @@ export const fetch = (backupID: string) => {
                 const backupInfos: BackupInfos = {
                     data: backupData,
                     id: backupID,
-                    size: Number((size / 1024 / 1024).toFixed(2))
+                    size: Number((size / 1024).toFixed(2))
                 };
                 // Returns backup informations
                 resolve(backupInfos);
