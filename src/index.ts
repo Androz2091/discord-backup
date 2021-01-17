@@ -102,7 +102,7 @@ export const create = async (
                         await nodeFetch(guild.iconURL({ dynamic: true })).then((res) => res.buffer())
                     ).toString('base64');
                 }
-                backupData.iconURL = guild.iconURL();
+                backupData.iconURL = guild.iconURL({ dynamic: true });
             }
             if (guild.splashURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {
