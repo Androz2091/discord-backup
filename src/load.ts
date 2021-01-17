@@ -1,59 +1,61 @@
 import type { BackupData, LoadOptions } from './types';
-import type { Guild } from 'discord.js';
+import type { Emoji, Guild, GuildChannel, Role } from 'discord.js';
 import { loadCategory, loadChannel } from './util';
 
 /**
  * Restores the guild configuration
  */
-export async function conf(guild: Guild, backupData: BackupData) {
+export const loadConfig = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
+    const configPromises: Promise<Guild>[] = [];
     if (backupData.name) {
-        guild.setName(backupData.name);
+        configPromises.push(guild.setName(backupData.name));
     }
     if (backupData.iconBase64) {
-        guild.setIcon(Buffer.from(backupData.iconBase64, 'base64'));
+        configPromises.push(guild.setIcon(Buffer.from(backupData.iconBase64, 'base64')));
     } else if (backupData.iconURL) {
-        guild.setIcon(backupData.iconURL);
+        configPromises.push(guild.setIcon(backupData.iconURL));
     }
     if (backupData.splashBase64) {
-        guild.setSplash(Buffer.from(backupData.splashBase64, 'base64'));
+        configPromises.push(guild.setSplash(Buffer.from(backupData.splashBase64, 'base64')));
     } else if (backupData.splashURL) {
-        guild.setSplash(backupData.splashURL);
+        configPromises.push(guild.setSplash(backupData.splashURL));
     }
     if (backupData.bannerBase64) {
-        guild.setBanner(Buffer.from(backupData.bannerBase64, 'base64'));
+        configPromises.push(guild.setBanner(Buffer.from(backupData.bannerBase64, 'base64')));
     } else if (backupData.bannerURL) {
-        guild.setBanner(backupData.bannerURL);
+        configPromises.push(guild.setBanner(backupData.bannerURL));
     }
     if (backupData.region) {
-        guild.setRegion(backupData.region);
+        configPromises.push(guild.setRegion(backupData.region));
     }
     if (backupData.verificationLevel) {
-        guild.setVerificationLevel(backupData.verificationLevel);
+        configPromises.push(guild.setVerificationLevel(backupData.verificationLevel));
     }
     if (backupData.defaultMessageNotifications) {
-        guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications);
+        configPromises.push(guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications));
     }
     const changeableExplicitLevel = guild.features.includes('COMMUNITY');
     if (backupData.explicitContentFilter && changeableExplicitLevel) {
-        guild.setExplicitContentFilter(backupData.explicitContentFilter);
+        configPromises.push(guild.setExplicitContentFilter(backupData.explicitContentFilter));
     }
-    return;
+    return Promise.all(configPromises);
 }
 
 /**
  * Restore the guild roles
  */
-export async function roles(guild: Guild, backupData: BackupData) {
+export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]> => {
+    const rolePromises: Promise<Role>[] = [];
     backupData.roles.forEach((roleData) => {
         if (roleData.isEveryone) {
-            guild.roles.cache.get(guild.id).edit({
+            rolePromises.push(guild.roles.cache.get(guild.id).edit({
                 name: roleData.name,
                 color: roleData.color,
                 permissions: roleData.permissions,
                 mentionable: roleData.mentionable
-            });
+            }));
         } else {
-            guild.roles.create({
+            rolePromises.push(guild.roles.create({
                 // Create the role
                 data: {
                     name: roleData.name,
@@ -62,16 +64,16 @@ export async function roles(guild: Guild, backupData: BackupData) {
                     permissions: roleData.permissions,
                     mentionable: roleData.mentionable
                 }
-            });
+            }));
         }
     });
-    return;
+    return Promise.all(rolePromises);
 }
 
 /**
  * Restore the guild channels
  */
-export async function channels(guild: Guild, backupData: BackupData, options: LoadOptions) {
+export const loadChannels = (guild: Guild, backupData: BackupData, options: LoadOptions): Promise<GuildChannel[]> => {
     backupData.channels.categories.forEach((categoryData) => {
         loadCategory(categoryData, guild).then((createdCategory) => {
             categoryData.children.forEach((channelData) => {
@@ -88,49 +90,53 @@ export async function channels(guild: Guild, backupData: BackupData, options: Lo
 /**
  * Restore the afk configuration
  */
-export async function afk(guild: Guild, backupData: BackupData) {
+export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
+    const afkPromises: Promise<Guild>[] = [];
     if (backupData.afk) {
-        guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name));
-        guild.setAFKTimeout(backupData.afk.timeout);
+        afkPromises.push(guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name)));
+        afkPromises.push(guild.setAFKTimeout(backupData.afk.timeout));
     }
-    return;
+    return Promise.all(afkPromises);
 }
 
 /**
  * Restore guild emojis
  */
-export async function emojis(guild: Guild, backupData: BackupData) {
+export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[]> => {
+    const emojiPromises: Promise<Emoji>[] = [];
     backupData.emojis.forEach((emoji) => {
         if (emoji.url) {
-            guild.emojis.create(emoji.url, emoji.name);
+            emojiPromises.push(guild.emojis.create(emoji.url, emoji.name));
         } else if (emoji.base64) {
-            guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name);
+            emojiPromises.push(guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name));
         }
     });
-    return;
+    return Promise.all(emojiPromises);
 }
 
 /**
  * Restore guild bans
  */
-export async function bans(guild: Guild, backupData: BackupData) {
+export const loadBans = (guild: Guild, backupData: BackupData): Promise<string[]> => {
+    const banPromises: Promise<string>[] = [];
     backupData.bans.forEach((ban) => {
-        guild.members.ban(ban.id, {
+        banPromises.push(guild.members.ban(ban.id, {
             reason: ban.reason
-        });
+        }) as Promise<string>);
     });
-    return;
+    return Promise.all(banPromises);
 }
 
 /**
  * Restore embedChannel configuration
  */
-export async function embedChannel(guild: Guild, backupData: BackupData) {
+export const loadEmbedChannel = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
+    const embedChannelPromises: Promise<Guild>[] = [];
     if (backupData.widget.channel) {
-        guild.setWidget({
+        embedChannelPromises.push(guild.setWidget({
             enabled: backupData.widget.enabled,
             channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel)
-        });
+        }));
     }
-    return;
+    return Promise.all(embedChannelPromises);
 }

@@ -168,20 +168,24 @@ export const load = async (
                     // Clear the guild
                     await utilMaster.clearGuild(guild);
                 }
-                // Restore guild configuration
-                await loadMaster.conf(guild, backupData);
-                // Restore guild roles
-                await loadMaster.roles(guild, backupData);
-                // Restore guild channels
-                await loadMaster.channels(guild, backupData, options);
-                // Restore afk channel and timeout
-                await loadMaster.afk(guild, backupData);
-                // Restore guild emojis
-                await loadMaster.emojis(guild, backupData);
-                // Restore guild bans
-                await loadMaster.bans(guild, backupData);
-                // Restore embed channel
-                await loadMaster.embedChannel(guild, backupData);
+                await Promise.all(
+                    [
+                        // Restore guild configuration
+                        loadMaster.loadConfig(guild, backupData),
+                        // Restore guild roles
+                        loadMaster.loadRoles(guild, backupData),
+                        // Restore guild channels
+                        loadMaster.loadChannels(guild, backupData, options),
+                        // Restore afk channel and timeout
+                        loadMaster.loadAFK(guild, backupData),
+                        // Restore guild emojis
+                        loadMaster.loadEmojis(guild, backupData),
+                        // Restore guild bans
+                        loadMaster.loadBans(guild, backupData),
+                        // Restore embed channel
+                        loadMaster.loadEmbedChannel(guild, backupData)
+                    ]
+                );
             } catch (e) {
                 return reject(e);
             }
