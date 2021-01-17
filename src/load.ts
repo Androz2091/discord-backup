@@ -39,7 +39,7 @@ export const loadConfig = (guild: Guild, backupData: BackupData): Promise<Guild[
         configPromises.push(guild.setExplicitContentFilter(backupData.explicitContentFilter));
     }
     return Promise.all(configPromises);
-}
+};
 
 /**
  * Restore the guild roles
@@ -48,48 +48,54 @@ export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]>
     const rolePromises: Promise<Role>[] = [];
     backupData.roles.forEach((roleData) => {
         if (roleData.isEveryone) {
-            rolePromises.push(guild.roles.cache.get(guild.id).edit({
-                name: roleData.name,
-                color: roleData.color,
-                permissions: roleData.permissions,
-                mentionable: roleData.mentionable
-            }));
-        } else {
-            rolePromises.push(guild.roles.create({
-                // Create the role
-                data: {
+            rolePromises.push(
+                guild.roles.cache.get(guild.id).edit({
                     name: roleData.name,
                     color: roleData.color,
-                    hoist: roleData.hoist,
                     permissions: roleData.permissions,
                     mentionable: roleData.mentionable
-                }
-            }));
+                })
+            );
+        } else {
+            rolePromises.push(
+                guild.roles.create({
+                    // Create the role
+                    data: {
+                        name: roleData.name,
+                        color: roleData.color,
+                        hoist: roleData.hoist,
+                        permissions: roleData.permissions,
+                        mentionable: roleData.mentionable
+                    }
+                })
+            );
         }
     });
     return Promise.all(rolePromises);
-}
+};
 
 /**
  * Restore the guild channels
  */
 export const loadChannels = (guild: Guild, backupData: BackupData, options: LoadOptions): Promise<unknown[]> => {
-    const loadChannelPromises: Promise<void|unknown>[] = [];
+    const loadChannelPromises: Promise<void | unknown>[] = [];
     backupData.channels.categories.forEach((categoryData) => {
-        loadChannelPromises.push(new Promise((resolve) => {
-            loadCategory(categoryData, guild).then((createdCategory) => {
-                categoryData.children.forEach((channelData) => {
-                    loadChannel(channelData, guild, createdCategory, options);
-                    resolve(true);
+        loadChannelPromises.push(
+            new Promise((resolve) => {
+                loadCategory(categoryData, guild).then((createdCategory) => {
+                    categoryData.children.forEach((channelData) => {
+                        loadChannel(channelData, guild, createdCategory, options);
+                        resolve(true);
+                    });
                 });
-            });
-        }));
+            })
+        );
     });
     backupData.channels.others.forEach((channelData) => {
         loadChannelPromises.push(loadChannel(channelData, guild, null, options));
     });
     return Promise.all(loadChannelPromises);
-}
+};
 
 /**
  * Restore the afk configuration
@@ -101,7 +107,7 @@ export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> 
         afkPromises.push(guild.setAFKTimeout(backupData.afk.timeout));
     }
     return Promise.all(afkPromises);
-}
+};
 
 /**
  * Restore guild emojis
@@ -116,7 +122,7 @@ export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[
         }
     });
     return Promise.all(emojiPromises);
-}
+};
 
 /**
  * Restore guild bans
@@ -124,12 +130,14 @@ export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[
 export const loadBans = (guild: Guild, backupData: BackupData): Promise<string[]> => {
     const banPromises: Promise<string>[] = [];
     backupData.bans.forEach((ban) => {
-        banPromises.push(guild.members.ban(ban.id, {
-            reason: ban.reason
-        }) as Promise<string>);
+        banPromises.push(
+            guild.members.ban(ban.id, {
+                reason: ban.reason
+            }) as Promise<string>
+        );
     });
     return Promise.all(banPromises);
-}
+};
 
 /**
  * Restore embedChannel configuration
@@ -137,10 +145,12 @@ export const loadBans = (guild: Guild, backupData: BackupData): Promise<string[]
 export const loadEmbedChannel = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
     const embedChannelPromises: Promise<Guild>[] = [];
     if (backupData.widget.channel) {
-        embedChannelPromises.push(guild.setWidget({
-            enabled: backupData.widget.enabled,
-            channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel)
-        }));
+        embedChannelPromises.push(
+            guild.setWidget({
+                enabled: backupData.widget.enabled,
+                channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel)
+            })
+        );
     }
     return Promise.all(embedChannelPromises);
-}
+};

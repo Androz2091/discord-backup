@@ -98,19 +98,25 @@ export const create = async (
             };
             if (guild.iconURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {
-                    backupData.iconBase64 = (await nodeFetch(guild.iconURL({ dynamic: true })).then(res => res.buffer())).toString("base64");
+                    backupData.iconBase64 = (
+                        await nodeFetch(guild.iconURL({ dynamic: true })).then((res) => res.buffer())
+                    ).toString('base64');
                 }
                 backupData.iconURL = guild.iconURL();
             }
             if (guild.splashURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {
-                    backupData.splashBase64 = (await nodeFetch(guild.splashURL()).then(res => res.buffer())).toString("base64");
+                    backupData.splashBase64 = (await nodeFetch(guild.splashURL()).then((res) => res.buffer())).toString(
+                        'base64'
+                    );
                 }
                 backupData.splashURL = guild.splashURL();
             }
             if (guild.bannerURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {
-                    backupData.bannerBase64 = (await nodeFetch(guild.bannerURL()).then(res => res.buffer())).toString("base64");
+                    backupData.bannerBase64 = (await nodeFetch(guild.bannerURL()).then((res) => res.buffer())).toString(
+                        'base64'
+                    );
                 }
                 backupData.bannerURL = guild.bannerURL();
             }
@@ -168,24 +174,22 @@ export const load = async (
                     // Clear the guild
                     await utilMaster.clearGuild(guild);
                 }
-                await Promise.all(
-                    [
-                        // Restore guild configuration
-                        loadMaster.loadConfig(guild, backupData),
-                        // Restore guild roles
-                        loadMaster.loadRoles(guild, backupData),
-                        // Restore guild channels
-                        loadMaster.loadChannels(guild, backupData, options),
-                        // Restore afk channel and timeout
-                        loadMaster.loadAFK(guild, backupData),
-                        // Restore guild emojis
-                        loadMaster.loadEmojis(guild, backupData),
-                        // Restore guild bans
-                        loadMaster.loadBans(guild, backupData),
-                        // Restore embed channel
-                        loadMaster.loadEmbedChannel(guild, backupData)
-                    ]
-                );
+                await Promise.all([
+                    // Restore guild configuration
+                    loadMaster.loadConfig(guild, backupData),
+                    // Restore guild roles
+                    loadMaster.loadRoles(guild, backupData),
+                    // Restore guild channels
+                    loadMaster.loadChannels(guild, backupData, options),
+                    // Restore afk channel and timeout
+                    loadMaster.loadAFK(guild, backupData),
+                    // Restore guild emojis
+                    loadMaster.loadEmojis(guild, backupData),
+                    // Restore guild bans
+                    loadMaster.loadBans(guild, backupData),
+                    // Restore embed channel
+                    loadMaster.loadEmbedChannel(guild, backupData)
+                ]);
             } catch (e) {
                 return reject(e);
             }
