@@ -73,7 +73,7 @@ export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]>
 /**
  * Restore the guild channels
  */
-export const loadChannels = (guild: Guild, backupData: BackupData, options: LoadOptions): Promise<GuildChannel[]> => {
+export const loadChannels = (guild: Guild, backupData: BackupData, options: LoadOptions): Promise<unknown[]> => {
     const loadChannelPromises: Promise<void|unknown>[] = [];
     backupData.channels.categories.forEach((categoryData) => {
         loadChannelPromises.push(new Promise((resolve) => {
@@ -88,7 +88,7 @@ export const loadChannels = (guild: Guild, backupData: BackupData, options: Load
     backupData.channels.others.forEach((channelData) => {
         loadChannelPromises.push(loadChannel(channelData, guild, null, options));
     });
-    return;
+    return Promise.all(loadChannelPromises);
 }
 
 /**
