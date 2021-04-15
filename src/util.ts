@@ -249,7 +249,6 @@ export async function clearGuild(guild: Guild) {
     });
     guild.setAFKChannel(null);
     guild.setAFKTimeout(60 * 5);
-    guild.setIcon(null);
     guild.setBanner(null).catch(() => {});
     guild.setSplash(null).catch(() => {});
     guild.setDefaultMessageNotifications('MENTIONS');
