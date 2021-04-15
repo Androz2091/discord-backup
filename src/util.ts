@@ -232,9 +232,9 @@ export async function clearGuild(guild: Guild) {
     guild.channels.cache.forEach((channel) => {
         channel.delete().catch(() => {});
     });
-    guild.emojis.cache.forEach((emoji) => {
+    /*guild.emojis.cache.forEach((emoji) => {
         emoji.delete().catch(() => {});
-    });
+    });*/ // Don't delete emojis
     const webhooks = await guild.fetchWebhooks();
     webhooks.forEach((webhook) => {
         webhook.delete().catch(() => {});
