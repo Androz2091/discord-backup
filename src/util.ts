@@ -102,7 +102,7 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
                         content: msg.cleanContent,
                         embeds: msg.embeds,
                         files: msg.attachments.map((a) => {
-                            let attach = ''
+                            let attach = a.url
                             if(a.url && ['png', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi'].includes(a.url)) {
                                 if(options.saveImages && options.saveImages === 'base64') {
                                     attach = (nodeFetch(a.url).then((res) => res.buffer())).toString('base64')
