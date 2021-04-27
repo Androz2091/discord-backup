@@ -216,7 +216,7 @@ export async function loadChannel(
                                     avatarURL: msg.avatar,
                                     embeds: msg.embeds,
                                     files: msg.files,
-                                    disableMentions: options.disableWebhookMention,
+                                    disableMentions: options.disableWebhookMention
                                 })
                                 .catch((err) => {
                                     console.log(err.message);
