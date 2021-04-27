@@ -19,6 +19,7 @@ import type {
     VoiceChannel,
     NewsChannel
 } from 'discord.js';
+import nodeFetch from 'node-fetch';
 
 /**
  * Gets the permissions for a channel
@@ -101,9 +102,15 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
                         content: msg.cleanContent,
                         embeds: msg.embeds,
                         files: msg.attachments.map((a) => {
+                            let attach = a.url
+                            if (a.url && ['png', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi'].includes(a.url)) {
+                                if (options.saveImages && options.saveImages === 'base64') {
+                                    attach = (nodeFetch(a.url).then((res) => res.buffer())).toString('base64')
+                                }
+                            }
                             return {
                                 name: a.name,
-                                attachment: a.url
+                                attachment: attach
                             };
                         }),
                         pinned: msg.pinned
@@ -204,7 +211,8 @@ export async function loadChannel(
                                     username: msg.username,
                                     avatarURL: msg.avatar,
                                     embeds: msg.embeds,
-                                    files: msg.files
+                                    files: msg.files,
+                                    disableMentions: options.disableWebhookMention
                                 })
                                 .catch((err) => {
                                     console.log(err.message);
