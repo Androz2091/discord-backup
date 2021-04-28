@@ -91,31 +91,32 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
                     break;
                 }
                 lastMessageId = fetched.last().id;
-                fetched.forEach((msg) => {
+                await Promise.all(fetched.map(async (msg) => {
                     if (!msg.author || channelData.messages.length >= messageCount) {
                         fetchComplete = true;
                         return;
                     }
+                    const files = await Promise.all(msg.attachments.map(async (a) => {
+                        let attach = a.url
+                        if (a.url && ['png', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi'].includes(a.url)) {
+                            if (options.saveImages && options.saveImages === 'base64') {
+                                attach = (await (nodeFetch(a.url).then((res) => res.buffer()))).toString('base64')
+                            }
+                        }
+                        return {
+                            name: a.name,
+                            attachment: attach
+                        };
+                    }))
                     channelData.messages.push({
                         username: msg.author.username,
                         avatar: msg.author.displayAvatarURL(),
                         content: msg.cleanContent,
                         embeds: msg.embeds,
-                        files: msg.attachments.map((a) => {
-                            let attach = a.url
-                            if (a.url && ['png', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi'].includes(a.url)) {
-                                if (options.saveImages && options.saveImages === 'base64') {
-                                    attach = (nodeFetch(a.url).then((res) => res.buffer())).toString('base64')
-                                }
-                            }
-                            return {
-                                name: a.name,
-                                attachment: attach
-                            };
-                        }),
+                        files,
                         pinned: msg.pinned
                     });
-                });
+                }));
             }
             /* Return channel data */
             resolve(channelData);
@@ -212,7 +213,7 @@ export async function loadChannel(
                                     avatarURL: msg.avatar,
                                     embeds: msg.embeds,
                                     files: msg.files,
-                                    disableMentions: options.disableWebhookMention
+                                    disableMentions: options.disableWebhookMentions
                                 })
                                 .catch((err) => {
                                     console.log(err.message);
