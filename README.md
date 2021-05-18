@@ -4,14 +4,14 @@
 [![versionBadge](https://img.shields.io/npm/v/discord-backup?style=for-the-badge)](https://npmjs.com/discord-backup)
 [![patreonBadge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2FAndroz2091%2Fpledges&style=for-the-badge)](https://patreon.com/Androz2091)
 
-**Note**: this module uses recent discordjs features and requires discord.js version 12.
+**Please Note**: this module uses recent discordjs features and requires discord.js version 12.
 
 Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows you to easily manage discord server backups.
 
 * Unlimited backups!
 * Backup creation takes less than 10 seconds!
-* Even restores messages with webhooks!
-* And restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
+* restores messages with webhooks!
+* restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
 
 ## Changelog
 
@@ -292,7 +292,7 @@ Here are all things that can be restored with `discord-backup`:
 * Server channels (with permissions, type, nsfw, messages, etc...)  
 * Server roles (with permissions, color, etc...)
 
-Example of things that can't be restored:
+Examples of information that can't be restored:
 
 * Server logs  
 * Server invitations  
