@@ -13,6 +13,7 @@ const readdirAsync = promisify(readdir);
 import * as createMaster from './create';
 import * as loadMaster from './load';
 import * as utilMaster from './util';
+import { RateLimitManager } from './ratelimit';
 
 let backups = `${__dirname}/backups`;
 if (!existsSync(backups)) {
@@ -160,8 +161,9 @@ export const load = async (
     guild: Guild,
     options: LoadOptions = {
         clearGuildBeforeRestore: true,
-        maxMessagesPerChannel: 10
-    }
+        maxMessagesPerChannel: 10,
+        mode: 'auto', // Select mode for Rate Limit
+    },
 ) => {
     return new Promise(async (resolve, reject) => {
         if (!guild) {
@@ -169,26 +171,41 @@ export const load = async (
         }
         try {
             const backupData: BackupData = typeof backup === 'string' ? await getBackupData(backup) : backup;
+            // Parse mode
+            if (
+                typeof options.mode != 'string' &&
+                typeof options.mode != 'number'
+            ) throw new Error('Bad options, mode must be string or number');
+
+            const rateLimitManager = new RateLimitManager(
+                50,
+                10000,
+                typeof options.mode == 'string' ?
+                    options.mode == 'slow' ? 1500 : options.mode == 'fast' ? 250 : 750
+                    : 750
+            );
+            
             try {
                 if (options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
                     // Clear the guild
-                    await utilMaster.clearGuild(guild);
+                    await utilMaster.clearGuild(guild, rateLimitManager);
                 }
+
                 await Promise.all([
                     // Restore guild configuration
-                    loadMaster.loadConfig(guild, backupData),
+                    loadMaster.loadConfig(guild, backupData, rateLimitManager),
                     // Restore guild roles
-                    loadMaster.loadRoles(guild, backupData),
+                    loadMaster.loadRoles(guild, backupData, rateLimitManager),
                     // Restore guild channels
-                    loadMaster.loadChannels(guild, backupData, options),
+                    loadMaster.loadChannels(guild, backupData, rateLimitManager, options),
                     // Restore afk channel and timeout
-                    loadMaster.loadAFK(guild, backupData),
+                    loadMaster.loadAFK(guild, backupData, rateLimitManager),
                     // Restore guild emojis
-                    loadMaster.loadEmojis(guild, backupData),
+                    loadMaster.loadEmojis(guild, backupData, rateLimitManager),
                     // Restore guild bans
-                    loadMaster.loadBans(guild, backupData),
+                    loadMaster.loadBans(guild, backupData, rateLimitManager),
                     // Restore embed channel
-                    loadMaster.loadEmbedChannel(guild, backupData)
+                    loadMaster.loadEmbedChannel(guild, backupData, rateLimitManager)
                 ]);
             } catch (e) {
                 return reject(e);

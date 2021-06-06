@@ -151,12 +151,14 @@ As you can see, you're able to load a backup from your own data instead of from 
 ```js
 const backup = require("discord-backup");
 backup.load(backupData, guild, {
-    clearGuildBeforeRestore: true
+    clearGuildBeforeRestore: true,
+    mode: 'slow', // 'fast', 'auto', 750,
 });
 ```
 
 **clearGuildBeforeRestore**: Whether to clear the guild (roles, channels, etc... will be deleted) before the backup restoration (recommended).  
-**maxMessagesPerChannel**: Maximum of messages to restore in each channel. "0" won't restore any messages.
+**maxMessagesPerChannel**: Maximum of messages to restore in each channel. "0" won't restore any messages.  
+**mode**: Speed of execute request, the faster it is, the greater the risk of ratelimit, (slow: 1.5s | fast: 0.25s | auto: 0.75s)
 
 ## Example Bot
 

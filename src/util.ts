@@ -20,6 +20,7 @@ import type {
     NewsChannel
 } from 'discord.js';
 import nodeFetch from 'node-fetch';
+import { RateLimitManager } from './ratelimit';
 
 /**
  * Gets the permissions for a channel
@@ -129,9 +130,9 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
 /**
  * Creates a category for the guild
  */
-export async function loadCategory(categoryData: CategoryData, guild: Guild) {
+export async function loadCategory(categoryData: CategoryData, guild: Guild, rateLimitManager: RateLimitManager) {
     return new Promise<CategoryChannel>((resolve) => {
-        guild.channels.create(categoryData.name, { type: 'category' }).then(async (category) => {
+        rateLimitManager.resolver(guild.channels, 'create', categoryData.name, { type: 'category' }).then(async (category) => {
             // When the category is created
             const finalPermissions: OverwriteData[] = [];
             categoryData.permissions.forEach((perm) => {
@@ -144,7 +145,7 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
                     });
                 }
             });
-            await category.overwritePermissions(finalPermissions);
+            await rateLimitManager.resolver(category, 'overwritePermissions', finalPermissions);
             resolve(category); // Return the category
         });
     });
@@ -157,7 +158,8 @@ export async function loadChannel(
     channelData: TextChannelData | VoiceChannelData,
     guild: Guild,
     category?: CategoryChannel,
-    options?: LoadOptions
+    options?: LoadOptions,
+    rateLimitManager?: RateLimitManager,
 ) {
     return new Promise(async (resolve) => {
         const createOptions: GuildCreateChannelOptions = {
@@ -181,7 +183,7 @@ export async function loadChannel(
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
             createOptions.type = 'voice';
         }
-        guild.channels.create(channelData.name, createOptions).then(async (channel) => {
+        rateLimitManager.resolver(guild.channels, 'create', channelData.name, createOptions).then(async (channel) => {
             /* Update channel permissions */
             const finalPermissions: OverwriteData[] = [];
             channelData.permissions.forEach((perm) => {
@@ -194,11 +196,11 @@ export async function loadChannel(
                     });
                 }
             });
-            await channel.overwritePermissions(finalPermissions);
+            await rateLimitManager.resolver(channel, 'overwritePermissions', finalPermissions);
             /* Load messages */
             if (channelData.type === 'text' && (channelData as TextChannelData).messages.length > 0) {
-                (channel as TextChannel)
-                    .createWebhook('MessagesBackup', {
+                rateLimitManager.resolver((channel as TextChannel),
+                'createWebhook', 'MessagesBackup', {
                         avatar: channel.client.user.displayAvatarURL()
                     })
                     .then(async (webhook) => {
@@ -207,18 +209,28 @@ export async function loadChannel(
                             .reverse();
                         messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
-                            const sentMsg = await webhook
-                                .send(msg.content, {
+                            const embedsClear: any = [];
+
+                            msg.embeds.forEach((embed) => {
+                                const clear: any = {};
+                                for (const [key, values] of Object.entries(embed).filter(([_, v]) => !!v)) {
+                                    clear[key] = values;
+                                };
+                                if (!!clear.url && !clear.description) clear.description = "Embed include url"
+                                embedsClear.push(clear);
+                            })
+
+                            const sentMsg = await rateLimitManager.resolver(webhook, 'send', msg.content, {
                                     username: msg.username,
                                     avatarURL: msg.avatar,
-                                    embeds: msg.embeds,
+                                    embeds: embedsClear,
                                     files: msg.files,
                                     disableMentions: options.disableWebhookMentions
                                 })
                                 .catch((err) => {
                                     console.log(err.message);
                                 });
-                            if (msg.pinned && sentMsg) await sentMsg.pin();
+                            if (msg.pinned && sentMsg) await rateLimitManager.resolver(sentMsg, 'pin');
                         }
                         resolve(channel); // Return the channel
                     });
@@ -232,45 +244,45 @@ export async function loadChannel(
 /**
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
-export async function clearGuild(guild: Guild) {
+export async function clearGuild(guild: Guild, rateLimitManager: RateLimitManager) {
     guild.roles.cache
         .filter((role) => !role.managed && role.editable && role.id !== guild.id)
         .forEach((role) => {
-            role.delete().catch(() => {});
+            rateLimitManager.resolver(role, 'delete').catch(() => {});
         });
     guild.channels.cache.forEach((channel) => {
-        channel.delete().catch(() => {});
+        rateLimitManager.resolver(channel, 'delete').catch(() => {});
     });
     guild.emojis.cache.forEach((emoji) => {
-        emoji.delete().catch(() => {});
+        rateLimitManager.resolver(emoji, 'delete').catch(() => {});
     });
-    const webhooks = await guild.fetchWebhooks();
-    webhooks.forEach((webhook) => {
-        webhook.delete().catch(() => {});
+    const webhooks = await rateLimitManager.resolver(guild, 'fetchWebhooks');
+    webhooks.forEach((webhook: any) => {
+        rateLimitManager.resolver(webhook, 'delete').catch(() => {});
     });
-    const bans = await guild.fetchBans();
-    bans.forEach((ban) => {
-        guild.members.unban(ban.user).catch(() => {});
+    const bans = await rateLimitManager.resolver(guild, 'fetchBans');
+    bans.forEach((ban: any) => {
+        rateLimitManager.resolver(guild.members, 'unban', ban.user).catch(() => {});
     });
-    const integrations = await guild.fetchIntegrations();
-    integrations.forEach((integration) => {
-        integration.delete();
+    const integrations = await rateLimitManager.resolver(guild, 'fetchIntegrations');
+    integrations.forEach((integration: any) => {
+        rateLimitManager.resolver(integration, 'delete');
     });
-    guild.setAFKChannel(null);
-    guild.setAFKTimeout(60 * 5);
-    guild.setIcon(null);
-    guild.setBanner(null).catch(() => {});
-    guild.setSplash(null).catch(() => {});
-    guild.setDefaultMessageNotifications('MENTIONS');
-    guild.setWidget({
+    rateLimitManager.resolver(guild, 'setAFKChannel', null);
+    rateLimitManager.resolver(guild, 'setAFKTimeout', 60 * 5);
+    rateLimitManager.resolver(guild, 'setIcon', null);
+    rateLimitManager.resolver(guild, 'setBanner', null).catch(() => {});
+    rateLimitManager.resolver(guild, 'setSplash', null).catch(() => {});
+    rateLimitManager.resolver(guild, 'setDefaultMessageNotifications', 'MENTIONS');
+    rateLimitManager.resolver(guild, 'setWidget', {
         enabled: false,
         channel: null
     });
     if (!guild.features.includes('COMMUNITY')) {
-        guild.setExplicitContentFilter('DISABLED');
-        guild.setVerificationLevel('NONE');
+        rateLimitManager.resolver(guild, 'setExplicitContentFilter', 'DISABLED');
+        rateLimitManager.resolver(guild, 'setVerificationLevel', 'NONE');
     }
-    guild.setSystemChannel(null);
-    guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
+    rateLimitManager.resolver(guild, 'setSystemChannel', null);
+    rateLimitManager.resolver(guild, 'setSystemChannelFlags', ['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
     return;
 }
