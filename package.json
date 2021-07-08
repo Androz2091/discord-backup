@@ -1,6 +1,6 @@
 {
   "name": "discord-backup",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "A complete framework to facilitate server backup using discord.js v12",
   "main": "lib/index.js",
   "files": [
@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/Androz2091/discord-backup#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "discord.js": "^12.5.3"
   },
   "devDependencies": {
     "@types/node": "^14.0.1",
