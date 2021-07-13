@@ -6,12 +6,12 @@ import type {
     TextChannelData,
     VoiceChannelData
 } from './types';
-import type {
+import {
     CategoryChannel,
     ChannelLogsQueryOptions,
     Collection,
     Guild,
-    GuildCreateChannelOptions,
+    GuildChannelCreateOptions,
     Message,
     OverwriteData,
     Snowflake,
@@ -19,6 +19,7 @@ import type {
     VoiceChannel,
     NewsChannel
 } from 'discord.js';
+
 import nodeFetch from 'node-fetch';
 
 /**
@@ -26,7 +27,7 @@ import nodeFetch from 'node-fetch';
  */
 export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel | NewsChannel) {
     const permissions: ChannelPermissionsData[] = [];
-    channel.permissionOverwrites
+    channel.permissionOverwrites.cache
         .filter((p) => p.type === 'role')
         .forEach((perm) => {
             // For each overwrites permission
@@ -69,12 +70,12 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
             type: 'text',
             name: channel.name,
             nsfw: channel.nsfw,
-            rateLimitPerUser: channel.type === 'text' ? channel.rateLimitPerUser : undefined,
+            rateLimitPerUser: channel.type === 'GUILD_TEXT' ? channel.rateLimitPerUser : undefined,
             parent: channel.parent ? channel.parent.name : null,
             topic: channel.topic,
             permissions: fetchChannelPermissions(channel),
             messages: [],
-            isNews: channel.type === 'news'
+            isNews: channel.type === 'GUILD_NEWS'
         };
         /* Fetch channel messages */
         const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
@@ -131,7 +132,7 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>((resolve) => {
-        guild.channels.create(categoryData.name, { type: 'category' }).then(async (category) => {
+        guild.channels.create(categoryData.name, { type: 'GUILD_CATEGORY' }).then(async (category) => {
             // When the category is created
             const finalPermissions: OverwriteData[] = [];
             categoryData.permissions.forEach((perm) => {
@@ -144,7 +145,7 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
                     });
                 }
             });
-            await category.overwritePermissions(finalPermissions);
+            await category.permissionOverwrites.set(finalPermissions);
             resolve(category); // Return the category
         });
     });
@@ -160,7 +161,7 @@ export async function loadChannel(
     options?: LoadOptions
 ) {
     return new Promise(async (resolve) => {
-        const createOptions: GuildCreateChannelOptions = {
+        const createOptions: GuildChannelCreateOptions = {
             type: null,
             parent: category
         };
@@ -169,17 +170,25 @@ export async function loadChannel(
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type =
-                (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'news' : 'text';
-        } else if (channelData.type === 'voice') {
+                (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'GUILD_NEWS' : 'GUILD_TEXT';
+        } else if (channelData.type === 'GUILD_VOICE') {
             // Downgrade bitrate
-            const maxBitrate = [64000, 128000, 256000, 384000];
+            const maxBitrate = {
+                NONE: 64000,
+                TIER_1: 128000,
+                TIER_2: 256000,
+                TIER_3: 384000
+            }
+
+            const bitrates = [64000, 128000, 256000, 384000]
+
             let bitrate = (channelData as VoiceChannelData).bitrate;
             while (bitrate > maxBitrate[guild.premiumTier]) {
-                bitrate = maxBitrate[maxBitrate.indexOf(guild.premiumTier) - 1];
+                bitrate = bitrates[bitrates.indexOf(maxBitrate[guild.premiumTier]) - 1]
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
-            createOptions.type = 'voice';
+            createOptions.type = 'GUILD_VOICE';
         }
         guild.channels.create(channelData.name, createOptions).then(async (channel) => {
             /* Update channel permissions */
@@ -194,7 +203,7 @@ export async function loadChannel(
                     });
                 }
             });
-            await channel.overwritePermissions(finalPermissions);
+            await channel.permissionOverwrites.set(finalPermissions);
             /* Load messages */
             if (channelData.type === 'text' && (channelData as TextChannelData).messages.length > 0) {
                 (channel as TextChannel)
@@ -208,17 +217,18 @@ export async function loadChannel(
                         messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                         for (const msg of messages) {
                             const sentMsg = await webhook
-                                .send(msg.content, {
+                                .send({
+                                    content: msg.content,
                                     username: msg.username,
                                     avatarURL: msg.avatar,
                                     embeds: msg.embeds,
                                     files: msg.files,
-                                    disableMentions: options.disableWebhookMentions
+                                    allowedMentions: options.allowedWebhookMentions
                                 })
                                 .catch((err) => {
                                     console.log(err.message);
                                 });
-                            if (msg.pinned && sentMsg) await sentMsg.pin();
+                            if (msg.pinned && sentMsg && sentMsg instanceof Message) await sentMsg.pin();
                         }
                         resolve(channel); // Return the channel
                     });
@@ -248,7 +258,7 @@ export async function clearGuild(guild: Guild) {
     webhooks.forEach((webhook) => {
         webhook.delete().catch(() => {});
     });
-    const bans = await guild.fetchBans();
+    const bans = await guild.bans.fetch();
     bans.forEach((ban) => {
         guild.members.unban(ban.user).catch(() => {});
     });
@@ -261,7 +271,7 @@ export async function clearGuild(guild: Guild) {
     guild.setIcon(null);
     guild.setBanner(null).catch(() => {});
     guild.setSplash(null).catch(() => {});
-    guild.setDefaultMessageNotifications('MENTIONS');
+    guild.setDefaultMessageNotifications('ONLY_MENTIONS');
     guild.setWidget({
         enabled: false,
         channel: null
@@ -271,6 +281,6 @@ export async function clearGuild(guild: Guild) {
         guild.setVerificationLevel('NONE');
     }
     guild.setSystemChannel(null);
-    guild.setSystemChannelFlags(['WELCOME_MESSAGE_DISABLED', 'BOOST_MESSAGE_DISABLED']);
+    guild.setSystemChannelFlags(7);
     return;
 }
