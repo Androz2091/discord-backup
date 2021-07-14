@@ -110,13 +110,14 @@ export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> 
  */
 export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[]> => {
     const emojiPromises: Promise<Emoji>[] = [];
-    if (backupData.emojis) backupData.emojis.forEach((emoji) => {
-        if (emoji.url) {
-            emojiPromises.push(guild.emojis.create(emoji.url, emoji.name));
-        } else if (emoji.base64) {
-            emojiPromises.push(guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name));
-        }
-    });
+    if (backupData.emojis)
+        backupData.emojis.forEach((emoji) => {
+            if (emoji.url) {
+                emojiPromises.push(guild.emojis.create(emoji.url, emoji.name));
+            } else if (emoji.base64) {
+                emojiPromises.push(guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name));
+            }
+        });
     return Promise.all(emojiPromises);
 };
 

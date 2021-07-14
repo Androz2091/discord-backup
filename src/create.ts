@@ -97,10 +97,9 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             others: []
         };
         // Gets the list of the categories and sort them by position
-        const categories = (guild.channels.cache.filter((c) => c.type == 'GUILD_CATEGORY') as Collection<
-            Snowflake,
-            CategoryChannel
-        >)
+        const categories = (
+            guild.channels.cache.filter((c) => c.type == 'GUILD_CATEGORY') as Collection<Snowflake, CategoryChannel>
+        )
             .sort((a, b) => a.position - b.position)
             .array() as CategoryChannel[];
         for (const category of categories) {
@@ -124,10 +123,12 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             channels.categories.push(categoryData); // Update channels object
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
-        const others = (guild.channels.cache.filter((ch) => !ch.parent && ch.type !== 'GUILD_CATEGORY') as Collection<
-            Snowflake,
-            GuildChannel
-        >)
+        const others = (
+            guild.channels.cache.filter((ch) => !ch.parent && ch.type !== 'GUILD_CATEGORY') as Collection<
+                Snowflake,
+                GuildChannel
+            >
+        )
             .sort((a, b) => a.position - b.position)
             .array();
         for (const channel of others) {

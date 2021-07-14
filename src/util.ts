@@ -17,7 +17,8 @@ import {
     Snowflake,
     TextChannel,
     VoiceChannel,
-    NewsChannel
+    NewsChannel,
+    StageChannel
 } from 'discord.js';
 
 import nodeFetch from 'node-fetch';
@@ -25,7 +26,9 @@ import nodeFetch from 'node-fetch';
 /**
  * Gets the permissions for a channel
  */
-export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel | NewsChannel) {
+export function fetchChannelPermissions(
+    channel: TextChannel | VoiceChannel | CategoryChannel | NewsChannel | StageChannel
+) {
     const permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites.cache
         .filter((p) => p.type === 'role')
@@ -46,10 +49,11 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
 /**
  * Fetches the voice channel data that is necessary for the backup
  */
-export async function fetchVoiceChannelData(channel: VoiceChannel) {
+export async function fetchVoiceChannelData(channel: VoiceChannel | StageChannel) {
     return new Promise<VoiceChannelData>(async (resolve) => {
         const channelData: VoiceChannelData = {
             type: 'GUILD_VOICE',
+            isStage: channel.type === 'GUILD_STAGE_VOICE',
             name: channel.name,
             bitrate: channel.bitrate,
             userLimit: channel.userLimit,
@@ -172,15 +176,15 @@ export async function loadChannel(
             type: null,
             parent: category
         };
-        if (channelData.type === 'GUILD_TEXT') {
+        if (channelData.type === 'GUILD_TEXT' || channelData.type === 'GUILD_NEWS') {
             createOptions.topic = (channelData as TextChannelData).topic;
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type =
-                (channelData as TextChannelData).isNews && guild.features.includes('NEWS')
+                (channelData as TextChannelData).isNews && guild.features.includes('COMMUNITY')
                     ? 'GUILD_NEWS'
                     : 'GUILD_TEXT';
-        } else if (channelData.type === 'GUILD_VOICE') {
+        } else if (channelData.type === 'GUILD_VOICE' || channelData.type === 'GUILD_STAGE_VOICE') {
             // Downgrade bitrate
             const maxBitrate = {
                 NONE: 64000,
@@ -197,7 +201,10 @@ export async function loadChannel(
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
-            createOptions.type = 'GUILD_VOICE';
+            createOptions.type =
+                (channelData as VoiceChannelData).isStage && guild.features.includes('COMMUNITY')
+                    ? 'GUILD_STAGE_VOICE'
+                    : 'GUILD_VOICE';
         }
         guild.channels.create(channelData.name, createOptions).then(async (channel) => {
             /* Update channel permissions */
