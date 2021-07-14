@@ -57,13 +57,12 @@ export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]>
             rolePromises.push(
                 guild.roles.create({
                     // Create the role
-                    
-                        name: roleData.name,
-                        color: roleData.color,
-                        hoist: roleData.hoist,
-                        permissions: roleData.permissions,
-                        mentionable: roleData.mentionable
-                    
+
+                    name: roleData.name,
+                    color: roleData.color,
+                    hoist: roleData.hoist,
+                    permissions: roleData.permissions,
+                    mentionable: roleData.mentionable
                 })
             );
         }

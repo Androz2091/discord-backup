@@ -138,8 +138,8 @@ export const create = async (
             if (!options || options.jsonSave === undefined || options.jsonSave) {
                 // Convert Object to JSON
                 const backupJSON = options.jsonBeautify
-                    ? JSON.stringify(backupData, (_, v) => typeof v === 'bigint' ? v.toString() : v, 4)
-                    : JSON.stringify(backupData, (_, v) => typeof v === 'bigint' ? v.toString() : v);
+                    ? JSON.stringify(backupData, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 4)
+                    : JSON.stringify(backupData, (_, v) => (typeof v === 'bigint' ? v.toString() : v));
                 // Save the backup
                 await writeFileAsync(`${backups}${sep}${backupData.id}.json`, backupJSON, 'utf-8');
             }
@@ -159,7 +159,8 @@ export const load = async (
     guild: Guild,
     options: LoadOptions = {
         clearGuildBeforeRestore: true,
-        maxMessagesPerChannel: 10
+        maxMessagesPerChannel: 10,
+        doNotRestore: []
     }
 ) => {
     return new Promise(async (resolve, reject) => {
@@ -171,7 +172,7 @@ export const load = async (
             try {
                 if (options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
                     // Clear the guild
-                    await utilMaster.clearGuild(guild);
+                    await utilMaster.clearGuild(guild, options.doNotRestore);
                 }
                 await Promise.all([
                     // Restore guild configuration

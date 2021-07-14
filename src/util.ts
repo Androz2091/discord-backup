@@ -49,7 +49,7 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
 export async function fetchVoiceChannelData(channel: VoiceChannel) {
     return new Promise<VoiceChannelData>(async (resolve) => {
         const channelData: VoiceChannelData = {
-            type: 'voice',
+            type: 'GUILD_VOICE',
             name: channel.name,
             bitrate: channel.bitrate,
             userLimit: channel.userLimit,
@@ -67,7 +67,7 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
 export async function fetchTextChannelData(channel: TextChannel | NewsChannel, options: CreateOptions) {
     return new Promise<TextChannelData>(async (resolve) => {
         const channelData: TextChannelData = {
-            type: 'text',
+            type: 'GUILD_TEXT',
             name: channel.name,
             nsfw: channel.nsfw,
             rateLimitPerUser: channel.type === 'GUILD_TEXT' ? channel.rateLimitPerUser : undefined,
@@ -79,7 +79,7 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
         };
         /* Fetch channel messages */
         const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-        const fetchOptions: ChannelLogsQueryOptions = { limit: 100 };
+        const fetchOptions: ChannelLogsQueryOptions = { limit: messageCount > 100 ? 100 : messageCount };
         let lastMessageId: Snowflake;
         let fetchComplete: boolean = false;
         try {
@@ -92,32 +92,39 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
                     break;
                 }
                 lastMessageId = fetched.last().id;
-                await Promise.all(fetched.map(async (msg) => {
-                    if (!msg.author || channelData.messages.length >= messageCount) {
-                        fetchComplete = true;
-                        return;
-                    }
-                    const files = await Promise.all(msg.attachments.map(async (a) => {
-                        let attach = a.url
-                        if (a.url && ['png', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi'].includes(a.url)) {
-                            if (options.saveImages && options.saveImages === 'base64') {
-                                attach = (await (nodeFetch(a.url).then((res) => res.buffer()))).toString('base64')
-                            }
+                let current: number = 0;
+                await Promise.all(
+                    fetched.map(async (msg) => {
+                        current++;
+                        if (!msg.author || current + 1 > messageCount) {
+                            fetchComplete = true;
                         }
-                        return {
-                            name: a.name,
-                            attachment: attach
-                        };
-                    }))
-                    channelData.messages.push({
-                        username: msg.author.username,
-                        avatar: msg.author.displayAvatarURL(),
-                        content: msg.cleanContent,
-                        embeds: msg.embeds,
-                        files,
-                        pinned: msg.pinned
-                    });
-                }));
+                        const files = await Promise.all(
+                            msg.attachments.map(async (a) => {
+                                let attach = a.url;
+                                if (a.url && ['png', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi'].includes(a.url)) {
+                                    if (options.saveImages && options.saveImages === 'base64') {
+                                        attach = (await nodeFetch(a.url).then((res) => res.buffer())).toString(
+                                            'base64'
+                                        );
+                                    }
+                                }
+                                return {
+                                    name: a.name,
+                                    attachment: attach
+                                };
+                            })
+                        );
+                        channelData.messages.push({
+                            username: msg.author.username,
+                            avatar: msg.author.displayAvatarURL(),
+                            content: msg.cleanContent,
+                            embeds: msg.embeds,
+                            files,
+                            pinned: msg.pinned
+                        });
+                    })
+                );
             }
             /* Return channel data */
             resolve(channelData);
@@ -165,12 +172,14 @@ export async function loadChannel(
             type: null,
             parent: category
         };
-        if (channelData.type === 'text') {
+        if (channelData.type === 'GUILD_TEXT') {
             createOptions.topic = (channelData as TextChannelData).topic;
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type =
-                (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'GUILD_NEWS' : 'GUILD_TEXT';
+                (channelData as TextChannelData).isNews && guild.features.includes('NEWS')
+                    ? 'GUILD_NEWS'
+                    : 'GUILD_TEXT';
         } else if (channelData.type === 'GUILD_VOICE') {
             // Downgrade bitrate
             const maxBitrate = {
@@ -178,13 +187,13 @@ export async function loadChannel(
                 TIER_1: 128000,
                 TIER_2: 256000,
                 TIER_3: 384000
-            }
+            };
 
-            const bitrates = [64000, 128000, 256000, 384000]
+            const bitrates = [64000, 128000, 256000, 384000];
 
             let bitrate = (channelData as VoiceChannelData).bitrate;
             while (bitrate > maxBitrate[guild.premiumTier]) {
-                bitrate = bitrates[bitrates.indexOf(maxBitrate[guild.premiumTier]) - 1]
+                bitrate = bitrates[bitrates.indexOf(maxBitrate[guild.premiumTier]) - 1];
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
@@ -205,7 +214,7 @@ export async function loadChannel(
             });
             await channel.permissionOverwrites.set(finalPermissions);
             /* Load messages */
-            if (channelData.type === 'text' && (channelData as TextChannelData).messages.length > 0) {
+            if (channelData.type === 'GUILD_TEXT' && (channelData as TextChannelData).messages.length > 0) {
                 (channel as TextChannel)
                     .createWebhook('MessagesBackup', {
                         avatar: channel.client.user.displayAvatarURL()
@@ -218,7 +227,7 @@ export async function loadChannel(
                         for (const msg of messages) {
                             const sentMsg = await webhook
                                 .send({
-                                    content: msg.content,
+                                    content: msg.content || undefined,
                                     username: msg.username,
                                     avatarURL: msg.avatar,
                                     embeds: msg.embeds,
@@ -242,30 +251,31 @@ export async function loadChannel(
 /**
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
-export async function clearGuild(guild: Guild) {
-    guild.roles.cache
-        .filter((role) => !role.managed && role.editable && role.id !== guild.id)
-        .forEach((role) => {
-            role.delete().catch(() => {});
+export async function clearGuild(guild: Guild, doNotRestore: string[] = []) {
+    if (!doNotRestore.includes('roles'))
+        guild.roles.cache
+            .filter((role) => !role.managed && role.editable && role.id !== guild.id)
+            .forEach((role) => {
+                role.delete().catch(() => {});
+            });
+    if (!doNotRestore.includes('channels'))
+        guild.channels.cache.forEach((channel) => {
+            channel.delete().catch(() => {});
         });
-    guild.channels.cache.forEach((channel) => {
-        channel.delete().catch(() => {});
-    });
-    guild.emojis.cache.forEach((emoji) => {
-        emoji.delete().catch(() => {});
-    });
+    if (!doNotRestore.includes('emojis'))
+        guild.emojis.cache.forEach((emoji) => {
+            emoji.delete().catch(() => {});
+        });
     const webhooks = await guild.fetchWebhooks();
-    webhooks.forEach((webhook) => {
-        webhook.delete().catch(() => {});
-    });
+    if (!doNotRestore.includes('webhooks'))
+        webhooks.forEach((webhook) => {
+            webhook.delete().catch(() => {});
+        });
     const bans = await guild.bans.fetch();
-    bans.forEach((ban) => {
-        guild.members.unban(ban.user).catch(() => {});
-    });
-    const integrations = await guild.fetchIntegrations();
-    integrations.forEach((integration) => {
-        integration.delete();
-    });
+    if (!doNotRestore.includes('bans'))
+        bans.forEach((ban) => {
+            guild.members.unban(ban.user).catch(() => {});
+        });
     guild.setAFKChannel(null);
     guild.setAFKTimeout(60 * 5);
     guild.setIcon(null);

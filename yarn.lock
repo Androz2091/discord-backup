@@ -172,10 +172,10 @@
   "resolved" "https://registry.npmjs.org/discord-api-types/-/discord-api-types-0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e.tgz"
   "version" "0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e"
 
-"discord.js@^13.0.0-dev.d433fe8.1625961832":
-  "integrity" "sha512-zHgVoWNaKNFv7EcI5iz/JVm4bp+6bsWaer03pKFqMhymtIU5FrIG1Dp8Ktg0jUP73SZVXsz/DeU91wzEdy6WNw=="
-  "resolved" "https://registry.npmjs.org/discord.js/-/discord.js-13.0.0-dev.d433fe8.1625961832.tgz"
-  "version" "13.0.0-dev.d433fe8.1625961832"
+"discord.js@^13.0.0-dev.1dcad05.1626178061":
+  "integrity" "sha512-u5YmV4qkcW3brtwj5zjt36Gm8opaffO4e7sRlqSGxvk+UO/vVaskcz0/BBNMuINmcdbJTuA/nXPksCBOzUxfbw=="
+  "resolved" "https://registry.npmjs.org/discord.js/-/discord.js-13.0.0-dev.1dcad05.1626178061.tgz"
+  "version" "13.0.0-dev.1dcad05.1626178061"
   dependencies:
     "@discordjs/builders" "^0.2.0"
     "@discordjs/collection" "^0.1.6"
