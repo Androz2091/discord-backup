@@ -8,7 +8,6 @@ import type {
 } from './types';
 import {
     CategoryChannel,
-    ChannelLogsQueryOptions,
     Collection,
     Guild,
     GuildChannelCreateOptions,
@@ -82,27 +81,21 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
             isNews: channel.type === 'GUILD_NEWS'
         };
         /* Fetch channel messages */
-        const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-        const fetchOptions: ChannelLogsQueryOptions = { limit: messageCount > 100 ? 100 : messageCount };
+        let messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
         let lastMessageId: Snowflake;
-        let fetchComplete: boolean = false;
         try {
-            while (!fetchComplete) {
-                if (lastMessageId) {
-                    fetchOptions.before = lastMessageId;
-                }
-                const fetched: Collection<Snowflake, Message> = await channel.messages.fetch(fetchOptions);
+            while (messageCount > 0) {
+                const fetched: Collection<Snowflake, Message> = await channel.messages.fetch({
+                    limit: messageCount > 100 ? 100 : messageCount,
+                    before: lastMessageId
+                });
                 if (fetched.size === 0) {
                     break;
                 }
+                messageCount -= fetched.size;
                 lastMessageId = fetched.last().id;
-                let current: number = 0;
                 await Promise.all(
                     fetched.map(async (msg) => {
-                        current++;
-                        if (!msg.author || current + 1 > messageCount) {
-                            fetchComplete = true;
-                        }
                         const files = await Promise.all(
                             msg.attachments.map(async (a) => {
                                 let attach = a.url;
@@ -258,28 +251,28 @@ export async function loadChannel(
 /**
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
-export async function clearGuild(guild: Guild, doNotRestore: string[] = []) {
-    if (!doNotRestore.includes('roles'))
+export async function clearGuild(guild: Guild, options: LoadOptions) {
+    if (!options.doNotRestore.includes('roles'))
         guild.roles.cache
             .filter((role) => !role.managed && role.editable && role.id !== guild.id)
             .forEach((role) => {
                 role.delete().catch(() => {});
             });
-    if (!doNotRestore.includes('channels'))
+    if (!options.doNotRestore.includes('channels'))
         guild.channels.cache.forEach((channel) => {
             channel.delete().catch(() => {});
         });
-    if (!doNotRestore.includes('emojis'))
+    if (!options.doNotRestore.includes('emojis'))
         guild.emojis.cache.forEach((emoji) => {
             emoji.delete().catch(() => {});
         });
     const webhooks = await guild.fetchWebhooks();
-    if (!doNotRestore.includes('webhooks'))
+    if (!options.doNotRestore.includes('webhooks'))
         webhooks.forEach((webhook) => {
             webhook.delete().catch(() => {});
         });
     const bans = await guild.bans.fetch();
-    if (!doNotRestore.includes('bans'))
+    if (!options.doNotRestore.includes('bans'))
         bans.forEach((ban) => {
             guild.members.unban(ban.user).catch(() => {});
         });
