@@ -3,6 +3,6 @@ export interface CreateOptions {
     maxMessagesPerChannel?: number;
     jsonSave?: boolean;
     jsonBeautify?: boolean;
-    doNotBackup?: string[];
+    doNotBackup?: ('roles' | 'channels' | 'emojis' | 'bans')[];
     saveImages?: string;
 }
