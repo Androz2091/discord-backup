@@ -172,7 +172,7 @@ export const load = async (
             try {
                 if (options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
                     // Clear the guild
-                    await utilMaster.clearGuild(guild, options.doNotRestore);
+                    await utilMaster.clearGuild(guild, options);
                 }
                 await Promise.all([
                     // Restore guild configuration

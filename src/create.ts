@@ -8,14 +8,15 @@ import type {
     TextChannelData,
     VoiceChannelData
 } from './types';
-import type {
+import {
     CategoryChannel,
     Guild,
     TextChannel,
     VoiceChannel,
     Snowflake,
     Collection,
-    GuildChannel
+    GuildChannel,
+    ThreadChannel
 } from 'discord.js';
 import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
@@ -115,7 +116,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
                 if (child.type === 'GUILD_TEXT' || child.type === 'GUILD_NEWS') {
                     const channelData: TextChannelData = await fetchTextChannelData(child as TextChannel, options); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
-                } else {
+                } else if (child.type === 'GUILD_VOICE' || child.type === 'GUILD_STAGE_VOICE') {
                     const channelData: VoiceChannelData = await fetchVoiceChannelData(child as VoiceChannel); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 }
@@ -124,7 +125,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
         const others = (
-            guild.channels.cache.filter((ch) => !ch.parent && ch.type !== 'GUILD_CATEGORY') as Collection<
+            guild.channels.cache.filter((ch) => !ch.parent && ch.type !== 'GUILD_CATEGORY' && !(ch instanceof ThreadChannel)) as Collection<
                 Snowflake,
                 GuildChannel
             >
@@ -133,10 +134,10 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             .array();
         for (const channel of others) {
             // For each channel
-            if (channel.type === 'GUILD_TEXT') {
+            if (channel.type === 'GUILD_TEXT' || channel.type === 'GUILD_NEWS') {
                 const channelData: TextChannelData = await fetchTextChannelData(channel as TextChannel, options); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
-            } else {
+            } else if (channel.type === 'GUILD_VOICE' || channel.type === 'GUILD_STAGE_VOICE') {
                 const channelData: VoiceChannelData = await fetchVoiceChannelData(channel as VoiceChannel); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             }
