@@ -44,7 +44,7 @@ export async function getRoles(guild: Guild) {
                 name: role.name,
                 color: role.hexColor,
                 hoist: role.hoist,
-                permissions: role.permissions.bitfield,
+                permissions: role.permissions.bitfield.toString(),
                 mentionable: role.mentionable,
                 position: role.position,
                 isEveryone: guild.id === role.id

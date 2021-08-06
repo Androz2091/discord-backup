@@ -2,7 +2,7 @@ export interface RoleData {
     name: string;
     color: `#${string}`;
     hoist: boolean;
-    permissions: bigint;
+    permissions: string;
     mentionable: boolean;
     position: number;
     isEveryone: boolean;

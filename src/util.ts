@@ -45,8 +45,8 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
             if (role) {
                 permissions.push({
                     roleName: role.name,
-                    allow: perm.allow.bitfield,
-                    deny: perm.deny.bitfield
+                    allow: perm.allow.bitfield.toString(),
+                    deny: perm.deny.bitfield.toString()
                 });
             }
         });
@@ -180,8 +180,8 @@ export async function loadCategory(categoryData: CategoryData, guild: Guild) {
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
-                        allow: perm.allow,
-                        deny: perm.deny
+                        allow: BigInt(perm.allow),
+                        deny: BigInt(perm.deny)
                     });
                 }
             });
@@ -263,8 +263,8 @@ export async function loadChannel(
                 if (role) {
                     finalPermissions.push({
                         id: role.id,
-                        allow: perm.allow,
-                        deny: perm.deny
+                        allow: BigInt(perm.allow),
+                        deny: BigInt(perm.deny)
                     });
                 }
             });

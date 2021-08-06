@@ -49,7 +49,7 @@ export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]>
                 guild.roles.cache.get(guild.id).edit({
                     name: roleData.name,
                     color: roleData.color,
-                    permissions: roleData.permissions,
+                    permissions: BigInt(roleData.permissions),
                     mentionable: roleData.mentionable
                 })
             );
@@ -59,7 +59,7 @@ export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]>
                     name: roleData.name,
                     color: roleData.color,
                     hoist: roleData.hoist,
-                    permissions: roleData.permissions,
+                    permissions: BigInt(roleData.permissions),
                     mentionable: roleData.mentionable
                 })
             );
