@@ -21,7 +21,9 @@ import type {
     VoiceChannel,
     NewsChannel,
     PremiumTier,
-    ThreadChannel
+    ThreadChannel,
+    GuildFeatures,
+    Webhook
 } from 'discord.js';
 import nodeFetch from 'node-fetch';
 
@@ -202,35 +204,33 @@ export async function loadChannel(
 ) {
     return new Promise(async (resolve) => {
 
-        const loadMessages = (channel: TextChannel | ThreadChannel, messages: MessageData[]): Promise<void> => {
-            return new Promise((resolve) => {
-                (channel as unknown as TextChannel)
-                    .createWebhook('MessagesBackup', {
-                        avatar: channel.client.user.displayAvatarURL()
-                    })
-                    .then(async (webhook) => {
-                        messages = messages
-                            .filter((m) => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
-                            .reverse();
-                        messages = messages.slice(messages.length - options.maxMessagesPerChannel);
-                        for (const msg of messages) {
-                            const sentMsg = await webhook
-                                .send({
-                                    content: msg.content,
-                                    username: msg.username,
-                                    avatarURL: msg.avatar,
-                                    embeds: msg.embeds,
-                                    files: msg.files,
-                                    allowedMentions: options.allowedMentions
-                                })
-                                .catch((err) => {
-                                    console.log(err.message);
-                                });
-                            if (msg.pinned && sentMsg) await (sentMsg as Message).pin();
-                        }
-                        resolve();
-                    })
-                    .catch(() => resolve());
+        const loadMessages = (channel: TextChannel | ThreadChannel, messages: MessageData[], previousWebhook?: Webhook): Promise<Webhook|void> => {
+            return new Promise(async (resolve) => {
+                const webhook = previousWebhook || await (channel as TextChannel).createWebhook('MessagesBackup', {
+                    avatar: channel.client.user.displayAvatarURL()
+                }).catch(() => {});
+                if (!webhook) return resolve();
+                messages = messages
+                    .filter((m) => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
+                    .reverse();
+                messages = messages.slice(messages.length - options.maxMessagesPerChannel);
+                for (const msg of messages) {
+                    const sentMsg = await webhook
+                        .send({
+                            content: msg.content.length ? msg.content : undefined,
+                            username: msg.username,
+                            avatarURL: msg.avatar,
+                            embeds: msg.embeds,
+                            files: msg.files,
+                            allowedMentions: options.allowedMentions,
+                            threadId: channel.isThread() ? channel.id : undefined
+                        })
+                        .catch((err) => {
+                            console.log(err.message);
+                        });
+                    if (msg.pinned && sentMsg) await (sentMsg as Message).pin();
+                }
+                resolve(webhook);
             });
         }
 
@@ -270,19 +270,25 @@ export async function loadChannel(
             });
             await channel.permissionOverwrites.set(finalPermissions);
             if (channelData.type === 'GUILD_TEXT') {
+                /* Load messages */
+                let webhook: Webhook|void;
+                if ((channelData as TextChannelData).messages.length > 0) {
+                    webhook = await loadMessages(channel as TextChannel, (channelData as TextChannelData).messages).catch(() => {});
+                }
                 /* Load threads */
                 if ((channelData as TextChannelData).threads.length > 0) { //&& guild.features.includes('THREADS_ENABLED')) {
                     await Promise.all((channelData as TextChannelData).threads.map(async (threadData) => {
+                        let autoArchiveDuration = threadData.autoArchiveDuration;
+                        if (!guild.features.includes('SEVEN_DAY_THREAD_ARCHIVE') && autoArchiveDuration === 10080) autoArchiveDuration = 4320;
+                        if (!guild.features.includes('THREE_DAY_THREAD_ARCHIVE') && autoArchiveDuration === 4320) autoArchiveDuration = 1440;
                         return (channel as TextChannel).threads.create({
                             name: threadData.name,
-                            autoArchiveDuration: threadData.autoArchiveDuration
+                            autoArchiveDuration
                         }).then((thread) => {
-                            return loadMessages(thread, threadData.messages);
+                            if (!webhook) return;
+                            return loadMessages(thread, threadData.messages, webhook);
                         });
                     }));
-                }
-                if ((channelData as TextChannelData).messages.length > 0) {
-                    await loadMessages(channel as TextChannel, (channelData as TextChannelData).messages).catch(() => {});
                 }
                 return channel;
             } else {
