@@ -1,5 +1,5 @@
 export interface ChannelPermissionsData {
     roleName: string;
-    allow: number;
-    deny: number;
+    allow: bigint;
+    deny: bigint;
 }

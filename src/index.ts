@@ -1,6 +1,6 @@
 import type { BackupData, BackupInfos, CreateOptions, LoadOptions } from './types/';
 import type { Guild } from 'discord.js';
-import { SnowflakeUtil } from 'discord.js';
+import { SnowflakeUtil, Intents } from 'discord.js';
 
 import nodeFetch from 'node-fetch';
 import { sep } from 'path';
@@ -76,10 +76,13 @@ export const create = async (
     }
 ) => {
     return new Promise<BackupData>(async (resolve, reject) => {
+
+       const intents = new Intents(guild.client.options.intents);
+       if (!intents.has('GUILDS')) return reject('GUILDS intent is required');
+
         try {
             const backupData: BackupData = {
                 name: guild.name,
-                region: guild.region,
                 verificationLevel: guild.verificationLevel,
                 explicitContentFilter: guild.explicitContentFilter,
                 defaultMessageNotifications: guild.defaultMessageNotifications,

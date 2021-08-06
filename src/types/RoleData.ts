@@ -1,8 +1,8 @@
 export interface RoleData {
     name: string;
-    color: string;
+    color: `#${string}`;
     hoist: boolean;
-    permissions: number;
+    permissions: bigint;
     mentionable: boolean;
     position: number;
     isEveryone: boolean;

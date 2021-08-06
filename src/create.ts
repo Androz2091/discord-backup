@@ -8,7 +8,7 @@ import type {
     TextChannelData,
     VoiceChannelData
 } from './types';
-import type { CategoryChannel, Guild, TextChannel, VoiceChannel } from 'discord.js';
+import type { CategoryChannel, Collection, Guild, GuildChannel, Snowflake, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
 import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 
@@ -19,7 +19,7 @@ import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } 
  */
 export async function getBans(guild: Guild) {
     const bans: BanData[] = [];
-    const cases = await guild.fetchBans(); // Gets the list of the banned members
+    const cases = await guild.bans.fetch(); // Gets the list of the banned members
     cases.forEach((ban) => {
         bans.push({
             id: ban.user.id, // Banned member ID
@@ -89,10 +89,10 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             others: []
         };
         // Gets the list of the categories and sort them by position
-        const categories = guild.channels.cache
-            .filter((ch) => ch.type === 'category')
+        const categories = (guild.channels.cache
+            .filter((ch) => ch.type === 'GUILD_CATEGORY') as Collection<Snowflake, CategoryChannel>)
             .sort((a, b) => a.position - b.position)
-            .array() as CategoryChannel[];
+            .toJSON() as CategoryChannel[];
         for (const category of categories) {
             const categoryData: CategoryData = {
                 name: category.name, // The name of the category
@@ -100,10 +100,10 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
                 children: [] // The children channels of the category
             };
             // Gets the children channels of the category and sort them by position
-            const children = category.children.sort((a, b) => a.position - b.position).array();
+            const children = category.children.sort((a, b) => a.position - b.position).toJSON();
             for (const child of children) {
                 // For each child channel
-                if (child.type === 'text' || child.type === 'news') {
+                if (child.type === 'GUILD_TEXT'|| child.type === 'GUILD_NEWS') {
                     const channelData: TextChannelData = await fetchTextChannelData(child as TextChannel, options); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 } else {
@@ -114,13 +114,17 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             channels.categories.push(categoryData); // Update channels object
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
-        const others = guild.channels.cache
-            .filter((ch) => !ch.parent && ch.type !== 'category')
+        const others = (guild.channels.cache
+            .filter((ch) => {
+                return !ch.parent && ch.type !== 'GUILD_CATEGORY'
+                    && ch.type !== 'GUILD_STORE' // there is no way to restore store channels, ignore them
+                    && ch.type !== 'GUILD_NEWS_THREAD' && ch.type !== 'GUILD_PRIVATE_THREAD' && ch.type !== 'GUILD_PUBLIC_THREAD' // threads will be saved with fetchTextChannelData
+            }) as Collection<Snowflake, Exclude<GuildChannel, ThreadChannel>>)
             .sort((a, b) => a.position - b.position)
-            .array();
+            .toJSON();
         for (const channel of others) {
             // For each channel
-            if (channel.type === 'text') {
+            if (channel.type === 'GUILD_TEXT' || channel.type === 'GUILD_NEWS') {
                 const channelData: TextChannelData = await fetchTextChannelData(channel as TextChannel, options); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             } else {

@@ -1,5 +1,5 @@
 import type { BackupData, LoadOptions } from './types';
-import type { Emoji, Guild, GuildChannel, Role } from 'discord.js';
+import type { Emoji, Guild, GuildChannel, Role, VoiceChannel } from 'discord.js';
 import { loadCategory, loadChannel } from './util';
 
 /**
@@ -24,9 +24,6 @@ export const loadConfig = (guild: Guild, backupData: BackupData): Promise<Guild[
         configPromises.push(guild.setBanner(Buffer.from(backupData.bannerBase64, 'base64')));
     } else if (backupData.bannerURL) {
         configPromises.push(guild.setBanner(backupData.bannerURL));
-    }
-    if (backupData.region) {
-        configPromises.push(guild.setRegion(backupData.region));
     }
     if (backupData.verificationLevel) {
         configPromises.push(guild.setVerificationLevel(backupData.verificationLevel));
@@ -59,14 +56,11 @@ export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]>
         } else {
             rolePromises.push(
                 guild.roles.create({
-                    // Create the role
-                    data: {
-                        name: roleData.name,
-                        color: roleData.color,
-                        hoist: roleData.hoist,
-                        permissions: roleData.permissions,
-                        mentionable: roleData.mentionable
-                    }
+                    name: roleData.name,
+                    color: roleData.color,
+                    hoist: roleData.hoist,
+                    permissions: roleData.permissions,
+                    mentionable: roleData.mentionable
                 })
             );
         }
@@ -103,7 +97,7 @@ export const loadChannels = (guild: Guild, backupData: BackupData, options: Load
 export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
     const afkPromises: Promise<Guild>[] = [];
     if (backupData.afk) {
-        afkPromises.push(guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name)));
+        afkPromises.push(guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name && ch.type === 'GUILD_VOICE') as VoiceChannel));
         afkPromises.push(guild.setAFKTimeout(backupData.afk.timeout));
     }
     return Promise.all(afkPromises);
@@ -146,7 +140,7 @@ export const loadEmbedChannel = (guild: Guild, backupData: BackupData): Promise<
     const embedChannelPromises: Promise<Guild>[] = [];
     if (backupData.widget.channel) {
         embedChannelPromises.push(
-            guild.setWidget({
+            guild.setWidgetSettings({
                 enabled: backupData.widget.enabled,
                 channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel)
             })
