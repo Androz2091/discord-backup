@@ -114,8 +114,9 @@ export async function fetchChannelMessages (channel: TextChannel | NewsChannel |
                 pinned: msg.pinned
             });
         }));
-        return messages;
     }
+
+    return messages;
 } 
 
 /**
@@ -159,6 +160,7 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
         /* Fetch channel messages */
         try {
             channelData.messages = await fetchChannelMessages(channel, options);
+
             /* Return channel data */
             resolve(channelData);
         } catch {
