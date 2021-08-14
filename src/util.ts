@@ -161,7 +161,8 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
             channelData.messages = await fetchChannelMessages(channel, options);
             /* Return channel data */
             resolve(channelData);
-        } catch {
+        } catch(err) {
+            console.log(err);
             resolve(channelData);
         }
     });
