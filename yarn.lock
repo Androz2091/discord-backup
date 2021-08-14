@@ -180,10 +180,10 @@ discord-api-types@^0.22.0:
   resolved "https://registry.npmjs.org/discord-api-types/-/discord-api-types-0.22.0.tgz#34dc57fe8e016e5eaac5e393646cd42a7e1ccc2a"
   integrity sha512-l8yD/2zRbZItUQpy7ZxBJwaLX/Bs2TGaCthRppk8Sw24LOIWg12t9JEreezPoYD0SQcC2htNNo27kYEpYW/Srg==
 
-discord.js@^13.0.0:
-  version "13.0.0"
-  resolved "https://registry.npmjs.org/discord.js/-/discord.js-13.0.0.tgz#fd1dde0e73f5dbcd0bf8edad68d3ef83fb2e36b7"
-  integrity sha512-QbGcxBFUuB6tIJ/xn6R86QeSolS0KGa9nsWcKegtaNWAggajVILA+eneZIZba38jqYes+FB4RHhg/kX3dm4v+Q==
+discord.js@^13.0.1:
+  version "13.0.1"
+  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-13.0.1.tgz#58f009706d1d7587fe9ff6c6c781e4540ae085f9"
+  integrity sha512-pEODCFfxypBnGEYpSgjkn1jt70raCS1um7Zp0AXEfW1DcR29wISzQ/WeWdnjP5KTXGi0LTtkRiUjOsMgSoukxA==
   dependencies:
     "@discordjs/builders" "^0.4.0"
     "@discordjs/collection" "^0.2.1"
@@ -339,9 +339,9 @@ path-is-absolute@^1.0.0:
   integrity sha1-F0uSaHNVNP+8es5r9TpanhtcX18=
 
 path-parse@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz#d62dbb5679405d72c4737ec58600e9ddcf06d24c"
-  integrity sha512-GSmOT2EbHrINBf9SR7CDELwlJ8AENk3Qn7OikK4nFYAu3Ote2+JYNVvkpAEQm3/TLNEJFD/xZJjzyxg3KBWOzw==
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
+  integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
 
 prettier@^2.0.4:
   version "2.2.1"
