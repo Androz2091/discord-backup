@@ -161,149 +161,186 @@ backup.load(backupData, guild, {
 
 ```js
 // Load modules
-const { Client, Intents, MessageEmbed } = require("discord.js");
+const DJS = require("discord.js");
 const backup = require("discord-backup");
-const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
+const client = new DJS.Client({
+  intents: [DJS.Intents.FLAGS.GUILDS, DJS.Intents.FLAGS.GUILD_MESSAGES]
 });
 
 const settings = {
-    prefix: "b!",
-    token: "YOURTOKEN"
+  prefix: "b!",
+  token: "YOUR_BOT_TOKEN"
 };
 
 client.on("ready", () => {
-    console.log("I'm ready !");
+  console.log("I'm ready !");
 });
 client.on("error", console.error);
 client.on("warn", console.warn);
 
 client.on("messageCreate", async (message) => {
-    if (message.author.bot || !message.guild) return;
-    if (!client.application?.owner) await client.application?.fetch();
+  if (message.author.bot || !message.guild || !message.guild.available) return;
+  if (!client.application?.owner) await client.application?.fetch();
 
-    if (message.content === `${settings.prefix}deploy` && message.author.id === client.application?.owner?.id) {
-        await message.guild.commands.set([
-            {
-                name: "create",
-                description: "Create a backup of the server"
-            },
-            {
-                name: "load",
-                description: "Load a backup on the server",
-                options: [
-                    {
-                        name: "id",
-                        type: "STRING",
-                        description: "The backup id",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "info",
-                description: "Show info of a backup id",
-                options: [
-                    {
-                        name: "id",
-                        type: "STRING",
-                        description: "The backup id",
-                        required: true
-                    }
-                ]
-            }
-        ]);
+  if (message.content === `${settings.prefix}deploy` && message.author.id === client.application.owner.id) {
+    await message.guild.commands.set([
+      {
+        name: "create",
+        description: "Create a backup of the server"
+      },
+      {
+        name: "load",
+        description: "Load a backup on the server",
+        options: [
+          {
+            name: "id",
+            type: "STRING",
+            description: "The backup id",
+            required: true
+          }
+        ]
+      },
+      {
+        name: "info",
+        description: "Show info of a backup id",
+        options: [
+          {
+            name: "id",
+            type: "STRING",
+            description: "The backup id",
+            required: true
+          }
+        ]
+      }
+   ]);
 
-        await message.reply("Deployed!");
-    }
+    await message.reply("Deployed!");
+  }
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isCommand() || !interaction.guildId) return;
+  if (!interaction.isCommand() || !interaction.guildId) return;
 
-    if (interaction.commandName === "create") {
-        await interaction.deferReply();
-        // Check member permissions
-        if(!interaction.member.permissions.has("ADMINISTRATOR")){
-            return interaction.followUp({ content: ":x: | You must be an administrator of this server to request a backup!" });
+  if (interaction.commandName === "create") {
+    await interaction.deferReply();
+    // Check member permissions
+    if (!interaction.member.permissions.has("ADMINISTRATOR")) {
+      return interaction.editReply({ content: ":x: | You must be an administrator of this server to request a backup!" });
+    }
+    try {
+      // Create the backup
+      const backupData = await backup.create(interaction.guild, {
+        jsonBeautify: true
+      });
+      // And send informations to the backup owner
+      interaction.user.send({ content: `The backup has been created! To load it, type this command on the server of your choice: \`\/load ${backupData.id}\`` });
+
+      interaction.followUp({ content: ":white_check_mark: Backup successfully created. The backup ID was sent in dm!" });
+    } catch (err) {
+      console.log(err);
+      // if the backup wasn't created
+      return interaction.followUp({ content: ":x: | An error occurred while creating backup " });
+    }
+
+  } else if (interaction.commandName === "load") {
+    await interaction.deferReply();
+    // Check member permissions
+    if (!interaction.member.permissions.has("ADMINISTRATOR")) {
+      return interaction.editReply({ content: ":x: | You must be an administrator of this server to request a backup!" });
+    }
+    // Get the backup id from user input
+    let backupID = interaction.options.get("id").value;
+    // Fetching the backup to know if it exist
+    try {
+      await backup.fetch(backupID);
+      // If the backup exists, request for confirmation
+      // creating confirmation buttons
+      const confirmRow = new DJS.MessageActionRow()
+        .addComponents(
+          new DJS.MessageButton()
+          .setStyle("SUCCESS")
+          .setLabel("Confirm")
+          .setCustomId("confirm"),
+          new DJS.MessageButton()
+          .setStyle("SECONDARY")
+          .setLabel("Cancel")
+          .setCustomId("cancel")
+        );
+      //sending the button embed message
+      const conf = await interaction.followUp({ content: ":warning: | When the backup is loaded, all the channels, roles, etc. will be replaced! Select `-confirm` to confirm!", components: [confirmRow] });
+
+      const collector = conf.createMessageComponentCollector({
+        filter: () => true,
+        time: 90000
+      });
+
+      collector.on("collect", async (component) => {
+
+        if (component.customId === "confirm") {
+          // When the author of the command has confirmed that he wants to load the backup on his server
+          interaction.user.send({ content: ":white_check_mark: | Start loading the backup!" });
+          // Load the backup
+          try {
+            await backup.load(backupID, interaction.guild); // When the backup is loaded, delete them from the server
+            backup.remove(backupID);
+          } catch (err) {
+            console.error(err);
+            // If an error occurred
+            interaction.user.send({ content: ":x: | Sorry, an error occurred... Please check that I have administrator permissions!" });
+          };
+          // if Cancel button was selected
+        } else if (component.customId === "cancel") {
+          conf.edit({ content: ":x: | Backup loading cancelled", components: [] });
         }
-        // Create the backup
-        backup.create(interaction.guild, {
-            jsonBeautify: true
-        }).then((backupData) => {
-            // And send informations to the backup owner
-            interaction.user.send({ content: `The backup has been created! To load it, type this command on the server of your choice: \`\/load ${backupData.id}\`` });
-            interaction.followUp({ content: ":white_check_mark: Backup successfully created. The backup ID was sent in dm!" });
-        });
-    }
-
-    if (interaction.commandName === "load") {
-        await interaction.deferReply();
-        // Check member permissions
-        if(!interaction.member.permissions.has("ADMINISTRATOR")){
-            return interaction.followUp({ content: ":x: | You must be an administrator of this server to request a backup!" });
+        component.deferUpdate();
+      });
+      // If timeout, nothing was selected
+      collector.on("end", (_, reason) => {
+        if (reason === "time") {
+          conf.edit({ content: ":x: | Time's up! Cancelled backup loading!", components: [] });
         }
-        let backupID = interaction.options.get("id").value;
-        // Fetching the backup to know if it exists
-        backup.fetch(backupID).then(async () => {
-            // If the backup exists, request for confirmation
-            interaction.followUp({ content: ":warning: | When the backup is loaded, all the channels, roles, etc. will be replaced! Type `-confirm` to confirm!" });
-                await interaction.channel.awaitMessages(m => (m.author.id === interaction.user.id) && (m.content === "-confirm"), {
-                    max: 1,
-                    time: 20000,
-                    errors: ["time"]
-                }).catch((err) => {
-                    // if the author of the commands does not confirm the backup loading
-                    return interaction.followUp({ content: ":x: | Time's up! Cancelled backup loading!" });
-                });
-                // When the author of the command has confirmed that he wants to load the backup on his server
-                interaction.user.send({ content: ":white_check_mark: | Start loading the backup!" });
-                // Load the backup
-                backup.load(backupID, message.guild).then(() => {
-                    // When the backup is loaded, delete them from the server
-                    backup.remove(backupID);
-                }).catch((err) => {
-                    // If an error occurred
-                    interaction.user.send({ content: ":x: | Sorry, an error occurred... Please check that I have administrator permissions!" });
-                });
-        }).catch((err) => {
-            console.log(err);
-            // if the backup wasn't found
-            return interaction.followUp({ content: `:x: | No backup found for \`backupID\`.` });
-        });
+      });
+    } catch (err) {
+      console.log(err);
+      // if the backup wasn't found
+      return interaction.followUp({ content: `:x: | No backup found for \`backupID\`.` });
     }
+  } else if (interaction.commandName === "info") {
+    await interaction.deferReply();
+    let backupID = interaction.options.get("id").value;
 
-    if (interaction.commandName === "info") {
-        await interaction.deferReply();
-        let backupID = interaction.options.get("id").value;
-        // Fetch the backup
-        backup.fetch(backupID).then((backupInfos) => {
-            const date = new Date(backupInfos.data.createdTimestamp);
-            const yyyy = date.getFullYear().toString(), mm = (date.getMonth()+1).toString(), dd = date.getDate().toString();
-            const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}/${(dd[1]?dd:"0"+dd[0])}`;
-            let embed = new MessageEmbed()
-                .setAuthor("Backup Informations")
-                // Display the backup ID
-                .addField("Backup ID", backupInfos.id, false)
-                // Displays the server from which this backup comes
-                .addField("Server ID", backupInfos.data.guildID, false)
-                // Display the size (in mb) of the backup
-                .addField("Size", `${backupInfos.size} kb`, false)
-                // Display when the backup was created
-                .addField("Created at", formatedDate, false)
-                .setColor("#FF0000");
-            interaction.followUp({ embeds: [embed] });
-        }).catch((err) => {
-            // if the backup wasn't found
-            return interaction.followUp({ content: `:x: | No backup found for \`backupID\`.` });
-        });
+    // Fetch the backup
+    try {
+      const backupInfos = await backup.fetch(backupID);
 
-    } else {
-        interaction.reply({
-            content: "Unknown command!",
-            ephemeral: true
-        });
-    }
+      const date = new Date(backupInfos.data.createdTimestamp);
+      const yyyy = date.getFullYear().toString(),
+        mm = (date.getMonth() + 1).toString(),
+        dd = date.getDate().toString();
+      const formatedDate = `${yyyy}\/${(mm[1] ? mm : `0${mm[0]}`)}\/${(dd[1] ? dd:`0${dd[0]}`)}`;
+      let embed = new DJS.MessageEmbed()
+        .setAuthor("Backup Informations")
+        // Display the backup ID
+        .addField("Backup ID", backupInfos.id, false)
+        // Displays the server from which this backup comes
+        .addField("Server ID", backupInfos.data.guildID, false)
+        // Display the size (in mb) of the backup
+        .addField("Size", `${backupInfos.size} kb`, false)
+        // Display when the backup was created
+        .addField("Created at", formatedDate, false)
+        .setColor("#FF0000");
+      interaction.followUp({ embeds: [embed] });
+    } catch (err) {
+      // if the backup wasn't found
+      return interaction.followUp({ content: `:x: | No backup found for \`backupID\`.` });
+    };
+    // if it didn't mathc any command
+  } else {
+    interaction.reply({
+      content: "Unknown command!",
+      ephemeral: true
+    });
+  }
 });
 
 //Your secret token to log the bot in. (never share this to anyone!)
