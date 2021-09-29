@@ -1,5 +1,5 @@
 export interface CreateOptions {
-    backupID?: string;
+    backupId?: string;
     maxMessagesPerChannel?: number;
     jsonSave?: boolean;
     jsonBeautify?: boolean;

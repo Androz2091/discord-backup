@@ -10,6 +10,7 @@ import { writeFile, readdir } from 'fs/promises';
 
 import * as createMaster from './create';
 import * as loadMaster from './load';
+import * as clearMaster from './clear';
 import * as utilMaster from './util';
 
 let backups = `${__dirname}/backups`;
@@ -20,11 +21,11 @@ if (!existsSync(backups)) {
 /**
  * Checks if a backup exists and returns its data
  */
-const getBackupData = async (backupID: string) => {
+const getBackupData = async (backupId: string) => {
     return new Promise<BackupData>(async (resolve, reject) => {
         const files = await readdir(backups); // Read "backups" directory
         // Try to get the json file
-        const file = files.filter((f) => f.split('.').pop() === 'json').find((f) => f === `${backupID}.json`);
+        const file = files.filter((f) => f.split('.').pop() === 'json').find((f) => f === `${backupId}.json`);
         if (file) {
             // If the file exists
             const backupData: BackupData = require(`${backups}${sep}${file}`);
@@ -40,14 +41,14 @@ const getBackupData = async (backupID: string) => {
 /**
  * Fetches a backyp and returns the information about it
  */
-export const fetch = (backupID: string) => {
+export const fetch = (backupId: string) => {
     return new Promise<BackupInfos>(async (resolve, reject) => {
-        getBackupData(backupID)
+        getBackupData(backupId)
             .then((backupData) => {
-                const size = statSync(`${backups}${sep}${backupID}.json`).size; // Gets the size of the file using fs
+                const size = statSync(`${backups}${sep}${backupId}.json`).size; // Gets the size of the file using fs
                 const backupInfos: BackupInfos = {
                     data: backupData,
-                    id: backupID,
+                    id: backupId,
                     size: Number((size / 1024).toFixed(2))
                 };
                 // Returns backup informations
@@ -65,7 +66,7 @@ export const fetch = (backupID: string) => {
 export const create = async (
     guild: Guild,
     options: CreateOptions = {
-        backupID: null,
+        backupId: null,
         maxMessagesPerChannel: 10,
         jsonSave: true,
         jsonBeautify: true,
@@ -94,8 +95,8 @@ export const create = async (
                 bans: [],
                 emojis: [],
                 createdTimestamp: Date.now(),
-                guildID: guild.id,
-                id: options.backupID ?? SnowflakeUtil.generate(Date.now())
+                guildId: guild.id,
+                id: options.backupId ?? SnowflakeUtil.generate(Date.now())
             };
             if (guild.iconURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {
@@ -160,7 +161,8 @@ export const load = async (
     backup: string | BackupData,
     guild: Guild,
     options: LoadOptions = {
-        clearGuildBeforeRestore: true,
+        doNotClear: [],
+        doNotRestore: [],
         maxMessagesPerChannel: 10
     }
 ) => {
@@ -171,23 +173,52 @@ export const load = async (
         try {
             const backupData: BackupData = typeof backup === 'string' ? await getBackupData(backup) : backup;
             try {
-                if (options.clearGuildBeforeRestore === undefined || options.clearGuildBeforeRestore) {
-                    // Clear the guild
-                    await utilMaster.clearGuild(guild);
+                if (!options || !(options.doNotClear || []).includes('roles')) {
+                // Clear guild roles
+                    await clearMaster.clearRoles(guild);
                 }
+                if (!options || !(options.doNotClear || []).includes('channels')) {
+                  // Clear guild channels
+                  await clearMaster.clearChannels(guild);
+                }
+                if (!options || !(options.doNotClear || []).includes('emojis')) {
+                  // Clear guild emojis
+                  await clearMaster.clearEmojis(guild);
+                }
+                if (!options || !(options.doNotClear || []).includes('bans')) {
+                  // Clear guild bans
+                  await clearMaster.clearBans(guild);
+                }
+
+                await Promise.all([
+                    // Clear guild configuration
+                    clearMaster.clearConfig(guild),
+                    // Clear guild webhooks
+                    clearMaster.clearWebhooks(guild)
+                ]);
+
+                if (!options || !(options.doNotRestore || []).includes('roles')) {
+                // Restore guild roles
+                    await loadMaster.loadRoles(guild, backupData);
+                }
+                if (!options || !(options.doNotRestore || []).includes('channels')) {
+                  // Restore guild channels
+                  await clearMaster.loadChannels(guild, backupData);
+                }
+                if (!options || !(options.doNotRestore || []).includes('emojis')) {
+                  // Restore guild emojis
+                  await loadMaster.loadEmojis(guild, backupData);
+                }
+                if (!options || !(options.doNotRestore || []).includes('bans')) {
+                  // Restore guild bans
+                  await loadMaster.loadBans(guild, backupData);
+                }
+
                 await Promise.all([
                     // Restore guild configuration
                     loadMaster.loadConfig(guild, backupData),
-                    // Restore guild roles
-                    loadMaster.loadRoles(guild, backupData),
-                    // Restore guild channels
-                    loadMaster.loadChannels(guild, backupData, options),
                     // Restore afk channel and timeout
                     loadMaster.loadAFK(guild, backupData),
-                    // Restore guild emojis
-                    loadMaster.loadEmojis(guild, backupData),
-                    // Restore guild bans
-                    loadMaster.loadBans(guild, backupData),
                     // Restore embed channel
                     loadMaster.loadEmbedChannel(guild, backupData)
                 ]);
@@ -205,11 +236,11 @@ export const load = async (
 /**
  * Removes a backup
  */
-export const remove = async (backupID: string) => {
+export const remove = async (backupId: string) => {
     return new Promise<void>((resolve, reject) => {
         try {
-            require(`${backups}${sep}${backupID}.json`);
-            unlinkSync(`${backups}${sep}${backupID}.json`);
+            require(`${backups}${sep}${backupId}.json`);
+            unlinkSync(`${backups}${sep}${backupId}.json`);
             resolve();
         } catch (error) {
             reject('Backup not found');
