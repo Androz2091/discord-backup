@@ -203,7 +203,7 @@ export const load = async (
                 }
                 if (!options || !(options.doNotRestore || []).includes('channels')) {
                   // Restore guild channels
-                  await clearMaster.loadChannels(guild, backupData);
+                  await loadMaster.loadChannels(guild, backupData);
                 }
                 if (!options || !(options.doNotRestore || []).includes('emojis')) {
                   // Restore guild emojis
