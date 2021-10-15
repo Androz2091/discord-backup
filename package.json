@@ -34,7 +34,7 @@
     "discord.js": "^12.5.1"
   },
   "devDependencies": {
-    "@types/node": "^15.0.1",
+    "@types/node": "^16.11.0",
     "@types/node-fetch": "^2.5.7",
     "@types/ws": "^7.2.4",
     "prettier": "^2.0.4",
