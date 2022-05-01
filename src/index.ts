@@ -70,6 +70,7 @@ export const create = async (
         jsonSave: true,
         jsonBeautify: true,
         doNotBackup: [],
+        backupMembers: false,
         saveImages: ''
     }
 ) => {
@@ -93,6 +94,7 @@ export const create = async (
                 roles: [],
                 bans: [],
                 emojis: [],
+                members: [],
                 createdTimestamp: Date.now(),
                 guildID: guild.id,
                 id: options.backupID ?? SnowflakeUtil.generate(Date.now())
@@ -120,6 +122,10 @@ export const create = async (
                     );
                 }
                 backupData.bannerURL = guild.bannerURL();
+            }
+            if (options && options.backupMembers) {
+                // Backup members
+                backupData.members = await createMaster.getMembers(guild);
             }
             if (!options || !(options.doNotBackup || []).includes('bans')) {
                 // Backup bans

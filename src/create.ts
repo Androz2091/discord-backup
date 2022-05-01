@@ -11,6 +11,7 @@ import type {
 import type { CategoryChannel, Collection, Guild, GuildChannel, Snowflake, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
 import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
+import { MemberData } from './types/MemberData';
 
 /**
  * Returns an array with the banned members of the guild
@@ -27,6 +28,27 @@ export async function getBans(guild: Guild) {
         });
     });
     return bans;
+}
+
+/**
+ * Returns an array with the members of the guild
+ * @param {Guild} guild The Discord guild
+ * @returns {Promise<MemberData>}
+ */
+export async function getMembers(guild: Guild) {
+    const members: MemberData[] = [];
+    guild.members.cache.forEach((member) => {
+        members.push({
+            userId: member.user.id, // Member ID
+            username: member.user.username, // Member username
+            discriminator: member.user.discriminator, // Member discriminator
+            avatarUrl: member.user.avatarURL(), // Member avatar URL
+            joinedTimestamp: member.joinedTimestamp, // Member joined timestamp
+            roles: member.roles.cache.map((role) => role.id), // Member roles
+            bot: member.user.bot // Member bot
+        });
+    });
+    return members;
 }
 
 /**

@@ -1,5 +1,6 @@
 import { DefaultMessageNotificationLevel, ExplicitContentFilterLevel, Snowflake, VerificationLevel } from 'discord.js';
 import { AfkData, BanData, ChannelsData, EmojiData, RoleData, WidgetData } from './';
+import { MemberData } from './MemberData';
 
 export interface BackupData {
     name: string;
@@ -18,6 +19,7 @@ export interface BackupData {
     roles: RoleData[];
     bans: BanData[];
     emojis: EmojiData[];
+    members: MemberData[];
     createdTimestamp: number;
     guildID: string;
     id: Snowflake;
