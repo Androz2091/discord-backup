@@ -7,5 +7,5 @@ export interface MessageData {
     embeds?: MessageEmbed[];
     files?: FileOptions[];
     pinned?: boolean;
-    sentAt: Date;
+    sentAt: string;
 }
