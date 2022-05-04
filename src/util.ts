@@ -111,7 +111,8 @@ export async function fetchChannelMessages (channel: TextChannel | NewsChannel |
                 content: msg.cleanContent,
                 embeds: msg.embeds,
                 files,
-                pinned: msg.pinned
+                pinned: msg.pinned,
+                sentAt: msg.createdAt.toISOString(),
             });
         }));
     }
