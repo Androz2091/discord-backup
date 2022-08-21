@@ -11,8 +11,12 @@ import type {
 import type {
     CategoryChannel,
     ChannelLogsQueryOptions,
+    ChannelType, 
     Collection,
     Guild,
+    GuildFeature,
+    GuildDefaultMessageNotifications, 
+    GuildSystemChannelFlags,
     GuildChannelCreateOptions,
     Message,
     OverwriteData,
@@ -28,10 +32,10 @@ import type {
 import nodeFetch from 'node-fetch';
 
 const MaxBitratePerTier: Record<PremiumTier, number> = {
-    NONE: 64000,
-    TIER_1: 128000,
-    TIER_2: 256000,
-    TIER_3: 384000
+    None: 64000,
+    Tier1: 128000,
+    Tier2: 256000,
+    Tier3: 384000
 };
 
 /**
@@ -61,7 +65,7 @@ export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | Ca
 export async function fetchVoiceChannelData(channel: VoiceChannel) {
     return new Promise<VoiceChannelData>(async (resolve) => {
         const channelData: VoiceChannelData = {
-            type: 'GUILD_VOICE',
+            type: ChannelType.GuildVoice,
             name: channel.name,
             bitrate: channel.bitrate,
             userLimit: channel.userLimit,
@@ -129,12 +133,12 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
             type: channel.type,
             name: channel.name,
             nsfw: channel.nsfw,
-            rateLimitPerUser: channel.type === 'GUILD_TEXT' ? channel.rateLimitPerUser : undefined,
+            rateLimitPerUser: channel.type === ChannelType.GuildText ? channel.rateLimitPerUser : undefined,
             parent: channel.parent ? channel.parent.name : null,
             topic: channel.topic,
             permissions: fetchChannelPermissions(channel),
             messages: [],
-            isNews: channel.type === 'GUILD_NEWS',
+            isNews: channel.type === ChannelType.GuildNews,
             threads: []
         };
         /* Fetch channel threads */
@@ -176,7 +180,7 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>((resolve) => {
         guild.channels.create(categoryData.name, {
-            type: 'GUILD_CATEGORY'
+            type: ChannelType.GuildCategory
         }).then(async (category) => {
             // When the category is created
             const finalPermissions: OverwriteData[] = [];
@@ -209,7 +213,8 @@ export async function loadChannel(
 
         const loadMessages = (channel: TextChannel | ThreadChannel, messages: MessageData[], previousWebhook?: Webhook): Promise<Webhook|void> => {
             return new Promise(async (resolve) => {
-                const webhook = previousWebhook || await (channel as TextChannel).createWebhook('MessagesBackup', {
+                const webhook = previousWebhook || await (channel as TextChannel).createWebhook({
+                    name: 'MessagesBackup',
                     avatar: channel.client.user.displayAvatarURL()
                 }).catch(() => {});
                 if (!webhook) return resolve();
@@ -238,16 +243,17 @@ export async function loadChannel(
         }
 
         const createOptions: GuildChannelCreateOptions = {
+            name: channelData.name,
             type: null,
             parent: category
         };
-        if (channelData.type === 'GUILD_TEXT' || channelData.type === 'GUILD_NEWS') {
+        if (channelData.type === ChannelType.GuildText || channelData.type === ChannelType.GuildNews) {
             createOptions.topic = (channelData as TextChannelData).topic;
             createOptions.nsfw = (channelData as TextChannelData).nsfw;
             createOptions.rateLimitPerUser = (channelData as TextChannelData).rateLimitPerUser;
             createOptions.type =
-                (channelData as TextChannelData).isNews && guild.features.includes('NEWS') ? 'GUILD_NEWS' : 'GUILD_TEXT';
-        } else if (channelData.type === 'GUILD_VOICE') {
+                (channelData as TextChannelData).isNews && guild.features.includes(GuildFeature.News) ? ChannelType.GuildNews : ChannelType.GuildText;
+        } else if (channelData.type === ChannelType.GuildVoice) {
             // Downgrade bitrate
             let bitrate = (channelData as VoiceChannelData).bitrate;
             const bitrates = Object.values(MaxBitratePerTier);
@@ -256,9 +262,9 @@ export async function loadChannel(
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
-            createOptions.type = 'GUILD_VOICE';
+            createOptions.type = ChannelType.GuildVoice;
         }
-        guild.channels.create(channelData.name, createOptions).then(async (channel) => {
+        guild.channels.create(createOptions).then(async (channel) => {
             /* Update channel permissions */
             const finalPermissions: OverwriteData[] = [];
             channelData.permissions.forEach((perm) => {
@@ -272,7 +278,7 @@ export async function loadChannel(
                 }
             });
             await channel.permissionOverwrites.set(finalPermissions);
-            if (channelData.type === 'GUILD_TEXT') {
+            if (channelData.type === ChannelType.GuildText) {
                 /* Load messages */
                 let webhook: Webhook|void;
                 if ((channelData as TextChannelData).messages.length > 0) {
@@ -282,8 +288,8 @@ export async function loadChannel(
                 if ((channelData as TextChannelData).threads.length > 0) { //&& guild.features.includes('THREADS_ENABLED')) {
                     await Promise.all((channelData as TextChannelData).threads.map(async (threadData) => {
                         let autoArchiveDuration = threadData.autoArchiveDuration;
-                        if (!guild.features.includes('SEVEN_DAY_THREAD_ARCHIVE') && autoArchiveDuration === 10080) autoArchiveDuration = 4320;
-                        if (!guild.features.includes('THREE_DAY_THREAD_ARCHIVE') && autoArchiveDuration === 4320) autoArchiveDuration = 1440;
+                        //if (!guild.features.includes('SEVEN_DAY_THREAD_ARCHIVE') && autoArchiveDuration === 10080) autoArchiveDuration = 4320;
+                        //if (!guild.features.includes('THREE_DAY_THREAD_ARCHIVE') && autoArchiveDuration === 4320) autoArchiveDuration = 1440;
                         return (channel as TextChannel).threads.create({
                             name: threadData.name,
                             autoArchiveDuration
@@ -329,16 +335,16 @@ export async function clearGuild(guild: Guild) {
     guild.setIcon(null);
     guild.setBanner(null).catch(() => {});
     guild.setSplash(null).catch(() => {});
-    guild.setDefaultMessageNotifications('ONLY_MENTIONS');
+    guild.setDefaultMessageNotifications(GuildDefaultMessageNotifications.OnlyMentions);
     guild.setWidgetSettings({
         enabled: false,
         channel: null
     });
-    if (!guild.features.includes('COMMUNITY')) {
-        guild.setExplicitContentFilter('DISABLED');
-        guild.setVerificationLevel('NONE');
+    if (!guild.features.includes(GuildFeature.Community)) {
+        guild.setExplicitContentFilter(GuildExplicitContentFilter.Disabled);
+        guild.setVerificationLevel(GuildVerificationLevel.None);
     }
     guild.setSystemChannel(null);
-    guild.setSystemChannelFlags(['SUPPRESS_GUILD_REMINDER_NOTIFICATIONS', 'SUPPRESS_JOIN_NOTIFICATIONS', 'SUPPRESS_PREMIUM_SUBSCRIPTIONS']);
+    guild.setSystemChannelFlags([GuildSystemChannelFlags.SuppressGuildReminderNotifications, GuildSystemChannelFlags.SuppressJoinNotifications, GuildSystemChannelFlags.SuppressPremiumSubscriptions]);
     return;
 }

@@ -1,5 +1,5 @@
 import type { BackupData, LoadOptions } from './types';
-import type { Emoji, Guild, GuildChannel, Role, VoiceChannel } from 'discord.js';
+import type { ChannelType, Emoji, Guild, GuildFeature, GuildChannel, Role, VoiceChannel } from 'discord.js';
 import { loadCategory, loadChannel } from './util';
 
 /**
@@ -31,7 +31,7 @@ export const loadConfig = (guild: Guild, backupData: BackupData): Promise<Guild[
     if (backupData.defaultMessageNotifications) {
         configPromises.push(guild.setDefaultMessageNotifications(backupData.defaultMessageNotifications));
     }
-    const changeableExplicitLevel = guild.features.includes('COMMUNITY');
+    const changeableExplicitLevel = guild.features.includes(GuildFeature.Community);
     if (backupData.explicitContentFilter && changeableExplicitLevel) {
         configPromises.push(guild.setExplicitContentFilter(backupData.explicitContentFilter));
     }
@@ -97,7 +97,7 @@ export const loadChannels = (guild: Guild, backupData: BackupData, options: Load
 export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
     const afkPromises: Promise<Guild>[] = [];
     if (backupData.afk) {
-        afkPromises.push(guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name && ch.type === 'GUILD_VOICE') as VoiceChannel));
+        afkPromises.push(guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name && ch.type === ChannelType.GuildVoice) as VoiceChannel));
         afkPromises.push(guild.setAFKTimeout(backupData.afk.timeout));
     }
     return Promise.all(afkPromises);
