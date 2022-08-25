@@ -122,7 +122,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
                 children: [] // The children channels of the category
             };
             // Gets the children channels of the category and sort them by position
-            const children = category.children.sort((a, b) => a.position - b.position).toJSON();
+            const children = category.children.cache.filter((a, b) => a.position - b.position).toJSON();
             for (const child of children) {
                 // For each child channel
                 if (child.type === ChannelType.GuildText || child.type === ChannelType.GuildNews) {
@@ -146,7 +146,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             .toJSON();
         for (const channel of others) {
             // For each channel
-            if (channel.type === ChnanelType.GuildText || channel.type === ChannelType.GuildNews) {
+            if (channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildNews) {
                 const channelData: TextChannelData = await fetchTextChannelData(channel as TextChannel, options); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             } else {
