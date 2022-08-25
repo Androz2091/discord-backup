@@ -3,7 +3,7 @@
 [![downloadsBadge](https://img.shields.io/npm/dt/discord-backup?style=for-the-badge)](https://npmjs.com/discord-backup)
 [![versionBadge](https://img.shields.io/npm/v/discord-backup?style=for-the-badge)](https://npmjs.com/discord-backup)
 
-**Note**: this module uses recent discordjs features and requires discord.js v13.
+**Note**: this module uses recent discordjs features and requires discord.js v14.
 
 Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows you to easily manage discord server backups.
 
@@ -163,17 +163,17 @@ backup.load(backupData, guild, {
 // Load modules
 const Discord = require("discord.js"),
 backup = require("discord-backup"),
-client = new Discord.Client(),
+client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.MessageContent] }),
 settings = {
     prefix: "b!",
     token: "YOURTOKEN"
 };
 
-client.on("ready", () => {
+client.once("ready", () => {
     console.log("I'm ready !");
 });
 
-client.on("message", async message => {
+client.on("messageCreate", async message => {
 
     // This reads the first part of your message behind your prefix to see which command you want to use.
     let command = message.content.toLowerCase().slice(settings.prefix.length).split(" ")[0];
@@ -188,7 +188,7 @@ client.on("message", async message => {
 
     if(command === "create"){
         // Check member permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")){
+        if(!message.member.permissions.has(Discord.PermissionFlagsBits.Administrator)){
             return message.channel.send(":x: | You must be an administrator of this server to request a backup!");
         }
         // Create the backup
@@ -203,7 +203,7 @@ client.on("message", async message => {
 
     if(command === "load"){
         // Check member permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")){
+        if(!message.member.permissions.has(Discord.PermissionFlagsBits.Administrator)){
             return message.channel.send(":x: | You must be an administrator of this server to load a backup!");
         }
         let backupID = args[0];
@@ -214,7 +214,9 @@ client.on("message", async message => {
         backup.fetch(backupID).then(async () => {
             // If the backup exists, request for confirmation
             message.channel.send(":warning: | When the backup is loaded, all the channels, roles, etc. will be replaced! Type `-confirm` to confirm!");
-                await message.channel.awaitMessages(m => (m.author.id === message.author.id) && (m.content === "-confirm"), {
+            const filter = m => (m.author.id === message.author.id) && (m.content === "-confirm")         
+                await message.channel.awaitMessages({
+                    filter,
                     max: 1,
                     time: 20000,
                     errors: ["time"]
