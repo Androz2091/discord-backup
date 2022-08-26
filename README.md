@@ -251,18 +251,20 @@ client.on("messageCreate", async message => {
             const date = new Date(backupInfos.data.createdTimestamp);
             const yyyy = date.getFullYear().toString(), mm = (date.getMonth()+1).toString(), dd = date.getDate().toString();
             const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}/${(dd[1]?dd:"0"+dd[0])}`;
-            let embed = new Discord.MessageEmbed()
-                .setAuthor("Backup Informations")
-                // Display the backup ID
-                .addField("Backup ID", backupInfos.id, false)
-                // Displays the server from which this backup comes
-                .addField("Server ID", backupInfos.data.guildID, false)
-                // Display the size (in mb) of the backup
-                .addField("Size", `${backupInfos.size} kb`, false)
-                // Display when the backup was created
-                .addField("Created at", formatedDate, false)
-                .setColor("#FF0000");
-            message.channel.send(embed);
+            let embed = new Discord.EmbedBuilder()
+                .setAuthor({ name: "Backup Informations" })
+                .addFields(
+                    // Display the backup ID
+                   { name: "Backup ID", value backupInfos.id }, 
+                    // Displays the ID of the server from which the backup comes
+                   { name: "Server ID", value: backupInfos.data.guildID }, 
+                    // Display the size (in MB) of this backup
+                   { name: "Size", value: `${backupInfos.size} MB` } 
+                    // Display when the backup was created
+                   { name: "Created at", value: formatedDate } 
+                 )
+                .setColor(0xFF0000);
+            message.channel.send({ embeds: [embed] });
         }).catch((err) => {
             // if the backup wasn't found
             return message.channel.send(":x: | No backup found for `"+backupID+"`!");
@@ -297,4 +299,4 @@ Example of things that can't be restored:
 
 * Server logs  
 * Server invitations  
-* Server vanity url
+* Server vanity URl
