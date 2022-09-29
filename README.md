@@ -161,19 +161,19 @@ backup.load(backupData, guild, {
 
 ```js
 // Load modules
-const Discord = require("discord.js"),
-backup = require("discord-backup"),
-client = new Discord.Client(),
-settings = {
+const Discord = require("discord.js")
+const backup = require("discord-backup")
+const client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.MessageContent ]})
+const settings = {
     prefix: "b!",
     token: "YOURTOKEN"
 };
 
-client.on("ready", () => {
+client.once("ready", () => {
     console.log("I'm ready !");
 });
 
-client.on("message", async message => {
+client.on("messageCreate", async message => {
 
     // This reads the first part of your message behind your prefix to see which command you want to use.
     let command = message.content.toLowerCase().slice(settings.prefix.length).split(" ")[0];
@@ -188,23 +188,23 @@ client.on("message", async message => {
 
     if(command === "create"){
         // Check member permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")){
-            return message.channel.send(":x: | You must be an administrator of this server to request a backup!");
+        if(!message.member.permissions.has(Discord.PermissionFlagsBits.Administrator)){
+            return message.reply(":x: | You must be an administrator of this server to request a backup!");
         }
         // Create the backup
         backup.create(message.guild, {
             jsonBeautify: true
         }).then((backupData) => {
             // And send informations to the backup owner
-            message.author.send("The backup has been created! To load it, type this command on the server of your choice: `"+settings.prefix+"load "+backupData.id+"`!");
+            message.author.send("The backup has been created! To load it, type this command on the server of your choice: `"+settings.prefix+"load "+backupData.id+"`!").catch(e => console.error(e));
             message.channel.send(":white_check_mark: Backup successfully created. The backup ID was sent in dm!");
         });
     }
 
     if(command === "load"){
         // Check member permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")){
-            return message.channel.send(":x: | You must be an administrator of this server to load a backup!");
+        if(!message.member.permissions.has(Discord.PermissionFlagsBits.Administrator)){
+            return message.reply(":x: | You must be an administrator of this server to load a backup!");
         }
         let backupID = args[0];
         if(!backupID){
@@ -214,7 +214,9 @@ client.on("message", async message => {
         backup.fetch(backupID).then(async () => {
             // If the backup exists, request for confirmation
             message.channel.send(":warning: | When the backup is loaded, all the channels, roles, etc. will be replaced! Type `-confirm` to confirm!");
-                await message.channel.awaitMessages(m => (m.author.id === message.author.id) && (m.content === "-confirm"), {
+            const filter = m => (m.author.id === message.author.id) && (m.content === "-confirm");
+                await message.channel.awaitMessages({
+                    filter,
                     max: 1,
                     time: 20000,
                     errors: ["time"]
@@ -223,7 +225,7 @@ client.on("message", async message => {
                     return message.channel.send(":x: | Time's up! Cancelled backup loading!");
                 });
                 // When the author of the command has confirmed that he wants to load the backup on his server
-                message.author.send(":white_check_mark: | Start loading the backup!");
+                message.author.send(":white_check_mark: | Start loading the backup!").catch(e => console.error(e));
                 // Load the backup
                 backup.load(backupID, message.guild).then(() => {
                     // When the backup is loaded, delete them from the server
@@ -249,18 +251,21 @@ client.on("message", async message => {
             const date = new Date(backupInfos.data.createdTimestamp);
             const yyyy = date.getFullYear().toString(), mm = (date.getMonth()+1).toString(), dd = date.getDate().toString();
             const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}/${(dd[1]?dd:"0"+dd[0])}`;
-            let embed = new Discord.MessageEmbed()
-                .setAuthor("Backup Informations")
+            let embed = new Discord.EmbedBuilder()
+                .setAuthor({ name: "Backup Informations" })
                 // Display the backup ID
-                .addField("Backup ID", backupInfos.id, false)
-                // Displays the server from which this backup comes
-                .addField("Server ID", backupInfos.data.guildID, false)
-                // Display the size (in mb) of the backup
-                .addField("Size", `${backupInfos.size} kb`, false)
-                // Display when the backup was created
-                .addField("Created at", formatedDate, false)
-                .setColor("#FF0000");
-            message.channel.send(embed);
+                .addFields(
+                    // Display the backup ID
+                    { name: 'Backup ID', value: backupInfos.id },
+                    // Displays the server from which this backup comes
+                    { name: 'Server ID', value: backupInfos.data.guildID },
+                    // Display the size (in KB) of the backup
+                    { name: 'Size', value: `${backupInfos.size} kb` },
+                    // Display when the backup was created
+                    { name: 'Created at', value: formatedDate }
+                )
+                .setColor(0xFF0000);
+            message.channel.send({ embeds: [embed] });
         }).catch((err) => {
             // if the backup wasn't found
             return message.channel.send(":x: | No backup found for `"+backupID+"`!");
