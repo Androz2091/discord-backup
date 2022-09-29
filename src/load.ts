@@ -110,9 +110,9 @@ export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[
     const emojiPromises: Promise<Emoji>[] = [];
     backupData.emojis.forEach((emoji) => {
         if (emoji.url) {
-            emojiPromises.push(guild.emojis.create(emoji.url, emoji.name));
+            emojiPromises.push(guild.emojis.create({ attachment: emoji.url, name: emoji.name}));
         } else if (emoji.base64) {
-            emojiPromises.push(guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name));
+            emojiPromises.push(guild.emojis.create({ attachment: Buffer.from(emoji.base64, 'base64'), name:  emoji.name}));
         }
     });
     return Promise.all(emojiPromises);

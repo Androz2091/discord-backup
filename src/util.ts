@@ -179,7 +179,8 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>((resolve) => {
-        guild.channels.create(categoryData.name, {
+        guild.channels.create({
+            name: categoryData.name,
             type: ChannelType.GuildCategory
         }).then(async (category) => {
             // When the category is created
