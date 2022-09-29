@@ -77,7 +77,7 @@ export const loadChannels = (guild: Guild, backupData: BackupData, options: Load
         loadChannelPromises.push(
             new Promise((resolve) => {
                 loadCategory(categoryData, guild).then((createdCategory) => {
-                    categoryData.children.forEach((channelData) => {
+                    categoryData.children.cache.forEach((channelData) => {
                         loadChannel(channelData, guild, createdCategory, options);
                         resolve(true);
                     });
