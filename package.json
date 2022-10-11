@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/Androz2091/discord-backup#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "discord.js": "^14.6.0"
   },
   "devDependencies": {
     "@types/node": "^15.0.1",
