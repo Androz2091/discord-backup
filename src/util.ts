@@ -8,14 +8,13 @@ import type {
     ThreadChannelData,
     VoiceChannelData
 } from './types';
-import type {
+import {
     CategoryChannel,
-    ChannelLogsQueryOptions,
-    ChannelType, 
+    ChannelType,
     Collection,
     Guild,
     GuildFeature,
-    GuildDefaultMessageNotifications, 
+    GuildDefaultMessageNotifications,
     GuildSystemChannelFlags,
     GuildChannelCreateOptions,
     Message,
@@ -24,18 +23,21 @@ import type {
     TextChannel,
     VoiceChannel,
     NewsChannel,
-    PremiumTier,
     ThreadChannel,
-    GuildFeatures,
-    Webhook
+    Webhook,
+    GuildPremiumTier,
+    GuildExplicitContentFilter,
+    GuildVerificationLevel,
+    OverwriteType,
+    AttachmentBuilder
 } from 'discord.js';
 import nodeFetch from 'node-fetch';
 
-const MaxBitratePerTier: Record<PremiumTier, number> = {
-    None: 64000,
-    Tier1: 128000,
-    Tier2: 256000,
-    Tier3: 384000
+const MaxBitratePerTier: Record<GuildPremiumTier, number> = {
+    [GuildPremiumTier.None]: 64000,
+    [GuildPremiumTier.Tier1]: 128000,
+    [GuildPremiumTier.Tier2]: 256000,
+    [GuildPremiumTier.Tier3]: 384000
 };
 
 /**
@@ -44,7 +46,7 @@ const MaxBitratePerTier: Record<PremiumTier, number> = {
 export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel | NewsChannel) {
     const permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites.cache
-        .filter((p) => p.type === 'role')
+        .filter((p) => p.type === OverwriteType.Role)
         .forEach((perm) => {
             // For each overwrites permission
             const role = channel.guild.roles.cache.get(perm.id);
@@ -77,10 +79,10 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
     });
 }
 
-export async function fetchChannelMessages (channel: TextChannel | NewsChannel | ThreadChannel, options: CreateOptions): Promise<MessageData[]> {
+export async function fetchChannelMessages(channel: TextChannel | NewsChannel | ThreadChannel, options: CreateOptions): Promise<MessageData[]> {
     let messages: MessageData[] = [];
     const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-    const fetchOptions: ChannelLogsQueryOptions = { limit: 100 };
+    const fetchOptions: { limit?: number, before?: Snowflake, after?: Snowflake, around?: Snowflake } = { limit: 100 };
     let lastMessageId: Snowflake;
     let fetchComplete: boolean = false;
     while (!fetchComplete) {
@@ -106,7 +108,7 @@ export async function fetchChannelMessages (channel: TextChannel | NewsChannel |
                 }
                 return {
                     name: a.name,
-                    attachment: attach
+                    data: attach
                 };
             }))
             messages.push({
@@ -114,7 +116,7 @@ export async function fetchChannelMessages (channel: TextChannel | NewsChannel |
                 avatar: msg.author.displayAvatarURL(),
                 content: msg.cleanContent,
                 embeds: msg.embeds,
-                files,
+                files: files,
                 pinned: msg.pinned,
                 sentAt: msg.createdAt.toISOString(),
             });
@@ -122,7 +124,7 @@ export async function fetchChannelMessages (channel: TextChannel | NewsChannel |
     }
 
     return messages;
-} 
+}
 
 /**
  * Fetches the text channel data that is necessary for the backup
@@ -165,7 +167,6 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
         /* Fetch channel messages */
         try {
             channelData.messages = await fetchChannelMessages(channel, options);
-
             /* Return channel data */
             resolve(channelData);
         } catch {
@@ -179,9 +180,7 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>((resolve) => {
-        guild.channels.create(categoryData.name, {
-            type: ChannelType.GuildCategory
-        }).then(async (category) => {
+        guild.channels.create({ name: categoryData.name, type: ChannelType.GuildCategory }).then(async (category) => {
             // When the category is created
             const finalPermissions: OverwriteData[] = [];
             categoryData.permissions.forEach((perm) => {
@@ -211,25 +210,26 @@ export async function loadChannel(
 ) {
     return new Promise(async (resolve) => {
 
-        const loadMessages = (channel: TextChannel | ThreadChannel, messages: MessageData[], previousWebhook?: Webhook): Promise<Webhook|void> => {
+        const loadMessages = (channel: TextChannel | ThreadChannel, messages: MessageData[], previousWebhook?: Webhook): Promise<Webhook | void> => {
             return new Promise(async (resolve) => {
                 const webhook = previousWebhook || await (channel as TextChannel).createWebhook({
                     name: 'MessagesBackup',
                     avatar: channel.client.user.displayAvatarURL()
-                }).catch(() => {});
+                }).catch(() => { });
                 if (!webhook) return resolve();
                 messages = messages
                     .filter((m) => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
                     .reverse();
                 messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                 for (const msg of messages) {
+                    const files = msg.files.map(file => new AttachmentBuilder(<string | Buffer>file.data, { name: file.name }));
                     const sentMsg = await webhook
                         .send({
                             content: msg.content.length ? msg.content : undefined,
                             username: msg.username,
                             avatarURL: msg.avatar,
                             embeds: msg.embeds,
-                            files: msg.files,
+                            files: files,
                             allowedMentions: options.allowedMentions,
                             threadId: channel.isThread() ? channel.id : undefined
                         })
@@ -258,7 +258,7 @@ export async function loadChannel(
             let bitrate = (channelData as VoiceChannelData).bitrate;
             const bitrates = Object.values(MaxBitratePerTier);
             while (bitrate > MaxBitratePerTier[guild.premiumTier]) {
-                bitrate = bitrates[Object.keys(MaxBitratePerTier).indexOf(guild.premiumTier) - 1];
+                bitrate = bitrates[Object.keys(MaxBitratePerTier).indexOf(guild.premiumTier.toString()) - 1];
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
@@ -280,9 +280,9 @@ export async function loadChannel(
             await channel.permissionOverwrites.set(finalPermissions);
             if (channelData.type === ChannelType.GuildText) {
                 /* Load messages */
-                let webhook: Webhook|void;
+                let webhook: Webhook | void;
                 if ((channelData as TextChannelData).messages.length > 0) {
-                    webhook = await loadMessages(channel as TextChannel, (channelData as TextChannelData).messages).catch(() => {});
+                    webhook = await loadMessages(channel as TextChannel, (channelData as TextChannelData).messages).catch(() => { });
                 }
                 /* Load threads */
                 if ((channelData as TextChannelData).threads.length > 0) { //&& guild.features.includes('THREADS_ENABLED')) {
@@ -314,27 +314,27 @@ export async function clearGuild(guild: Guild) {
     guild.roles.cache
         .filter((role) => !role.managed && role.editable && role.id !== guild.id)
         .forEach((role) => {
-            role.delete().catch(() => {});
+            role.delete().catch(() => { });
         });
     guild.channels.cache.forEach((channel) => {
-        channel.delete().catch(() => {});
+        channel.delete().catch(() => { });
     });
     guild.emojis.cache.forEach((emoji) => {
-        emoji.delete().catch(() => {});
+        emoji.delete().catch(() => { });
     });
     const webhooks = await guild.fetchWebhooks();
     webhooks.forEach((webhook) => {
-        webhook.delete().catch(() => {});
+        webhook.delete().catch(() => { });
     });
     const bans = await guild.bans.fetch();
     bans.forEach((ban) => {
-        guild.members.unban(ban.user).catch(() => {});
+        guild.members.unban(ban.user).catch(() => { });
     });
     guild.setAFKChannel(null);
     guild.setAFKTimeout(60 * 5);
     guild.setIcon(null);
-    guild.setBanner(null).catch(() => {});
-    guild.setSplash(null).catch(() => {});
+    guild.setBanner(null).catch(() => { });
+    guild.setSplash(null).catch(() => { });
     guild.setDefaultMessageNotifications(GuildDefaultMessageNotifications.OnlyMentions);
     guild.setWidgetSettings({
         enabled: false,

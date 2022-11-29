@@ -8,7 +8,7 @@ import type {
     TextChannelData,
     VoiceChannelData
 } from './types';
-import type { CategoryChannel, ChannelType, Collection, Guild, GuildChannel, Snowflake, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
+import { CategoryChannel, ChannelType, Collection, Guild, GuildChannel, Snowflake, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
 import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
 import { MemberData } from './types/MemberData';
@@ -122,7 +122,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
                 children: [] // The children channels of the category
             };
             // Gets the children channels of the category and sort them by position
-            const children = category.children.sort((a, b) => a.position - b.position).toJSON();
+            const children = category.children.cache.sort((a, b) => a.position - b.position).toJSON();
             for (const child of children) {
                 // For each child channel
                 if (child.type === ChannelType.GuildText || child.type === ChannelType.GuildNews) {
@@ -140,13 +140,13 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             .filter((ch) => {
                 return !ch.parent && ch.type !== ChannelType.GuildCategory
                     //&& ch.type !== 'GUILD_STORE' // there is no way to restore store channels, ignore them
-                    && ch.type !== ChannelType.GuildNewsThread && ch.type !== ChannelType.GuildPrivateThread && ch.type !== ChannelType.GuildPublicThread // threads will be saved with fetchTextChannelData
+                    && ch.type !== ChannelType.AnnouncementThread && ch.type !== ChannelType.PrivateThread && ch.type !== ChannelType.PublicThread // threads will be saved with fetchTextChannelData
             }) as Collection<Snowflake, Exclude<GuildChannel, ThreadChannel>>)
             .sort((a, b) => a.position - b.position)
             .toJSON();
         for (const channel of others) {
             // For each channel
-            if (channel.type === ChnanelType.GuildText || channel.type === ChannelType.GuildNews) {
+            if (channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement) {
                 const channelData: TextChannelData = await fetchTextChannelData(channel as TextChannel, options); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             } else {
