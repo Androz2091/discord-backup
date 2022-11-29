@@ -219,6 +219,7 @@ export async function loadChannel(
                 if (!webhook) return resolve();
                 messages = messages
                     .filter((m) => m.content.length > 0 || m.embeds.length > 0 || m.files.length > 0)
+                    .sort((a, b) => { return new Date(a.sentAt) < new Date(b.sentAt) ? 1 : -1 })
                     .reverse();
                 messages = messages.slice(messages.length - options.maxMessagesPerChannel);
                 for (const msg of messages) {
