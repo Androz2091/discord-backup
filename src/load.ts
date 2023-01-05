@@ -1,5 +1,6 @@
 import type { BackupData, LoadOptions } from './types';
-import type { ChannelType, Emoji, Guild, GuildFeature, GuildChannel, Role, VoiceChannel } from 'discord.js';
+import type { NewsChannel, TextChannel, ForumChannel, VoiceBasedChannel } from 'discord.js';
+import { ChannelType, Emoji, Guild, GuildFeature, Role, VoiceChannel } from 'discord.js';
 import { loadCategory, loadChannel } from './util';
 
 /**
@@ -110,9 +111,15 @@ export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[
     const emojiPromises: Promise<Emoji>[] = [];
     backupData.emojis.forEach((emoji) => {
         if (emoji.url) {
-            emojiPromises.push(guild.emojis.create(emoji.url, emoji.name));
+            emojiPromises.push(guild.emojis.create({
+                name: emoji.name,
+                attachment: emoji.url
+            }));
         } else if (emoji.base64) {
-            emojiPromises.push(guild.emojis.create(Buffer.from(emoji.base64, 'base64'), emoji.name));
+            emojiPromises.push(guild.emojis.create({
+                name: emoji.name,
+                attachment: Buffer.from(emoji.base64, 'base64')
+            }));
         }
     });
     return Promise.all(emojiPromises);
@@ -142,7 +149,7 @@ export const loadEmbedChannel = (guild: Guild, backupData: BackupData): Promise<
         embedChannelPromises.push(
             guild.setWidgetSettings({
                 enabled: backupData.widget.enabled,
-                channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel)
+                channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel) as NewsChannel | TextChannel | ForumChannel | VoiceBasedChannel
             })
         );
     }

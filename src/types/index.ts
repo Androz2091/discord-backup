@@ -1,5 +1,3 @@
-import type { GuildFeatures } from 'discord.js';
-
 export * from './AfkData';
 export * from './BackupData';
 export * from './BackupInfos';

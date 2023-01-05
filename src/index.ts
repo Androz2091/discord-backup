@@ -97,15 +97,15 @@ export const create = async (
                 members: [],
                 createdTimestamp: Date.now(),
                 guildID: guild.id,
-                id: options.backupID ?? SnowflakeUtil.generate(Date.now())
+                id: options.backupID ?? SnowflakeUtil.generate().toString()
             };
             if (guild.iconURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {
                     backupData.iconBase64 = (
-                        await nodeFetch(guild.iconURL({ dynamic: true })).then((res) => res.buffer())
+                        await nodeFetch(guild.iconURL()).then((res) => res.buffer())
                     ).toString('base64');
                 }
-                backupData.iconURL = guild.iconURL({ dynamic: true });
+                backupData.iconURL = guild.iconURL();
             }
             if (guild.splashURL()) {
                 if (options && options.saveImages && options.saveImages === 'base64') {

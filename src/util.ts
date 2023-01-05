@@ -8,9 +8,8 @@ import type {
     ThreadChannelData,
     VoiceChannelData
 } from './types';
-import type {
+import {
     CategoryChannel,
-    ChannelLogsQueryOptions,
     ChannelType, 
     Collection,
     Guild,
@@ -24,18 +23,22 @@ import type {
     TextChannel,
     VoiceChannel,
     NewsChannel,
-    PremiumTier,
     ThreadChannel,
-    GuildFeatures,
-    Webhook
+    Webhook,
+    GuildPremiumTier,
+    GuildExplicitContentFilter,
+    GuildVerificationLevel,
+    FetchMessagesOptions,
+    OverwriteType,
+    AttachmentBuilder
 } from 'discord.js';
 import nodeFetch from 'node-fetch';
 
-const MaxBitratePerTier: Record<PremiumTier, number> = {
-    None: 64000,
-    Tier1: 128000,
-    Tier2: 256000,
-    Tier3: 384000
+const MaxBitratePerTier: Record<GuildPremiumTier, number> = {
+    [GuildPremiumTier.None]: 64000,
+    [GuildPremiumTier.Tier1]: 128000,
+    [GuildPremiumTier.Tier2]: 256000,
+    [GuildPremiumTier.Tier3]: 384000
 };
 
 /**
@@ -44,7 +47,7 @@ const MaxBitratePerTier: Record<PremiumTier, number> = {
 export function fetchChannelPermissions(channel: TextChannel | VoiceChannel | CategoryChannel | NewsChannel) {
     const permissions: ChannelPermissionsData[] = [];
     channel.permissionOverwrites.cache
-        .filter((p) => p.type === 'role')
+        .filter((p) => p.type === OverwriteType.Role)
         .forEach((perm) => {
             // For each overwrites permission
             const role = channel.guild.roles.cache.get(perm.id);
@@ -80,7 +83,7 @@ export async function fetchVoiceChannelData(channel: VoiceChannel) {
 export async function fetchChannelMessages (channel: TextChannel | NewsChannel | ThreadChannel, options: CreateOptions): Promise<MessageData[]> {
     let messages: MessageData[] = [];
     const messageCount: number = isNaN(options.maxMessagesPerChannel) ? 10 : options.maxMessagesPerChannel;
-    const fetchOptions: ChannelLogsQueryOptions = { limit: 100 };
+    const fetchOptions: FetchMessagesOptions = { limit: 100 };
     let lastMessageId: Snowflake;
     let fetchComplete: boolean = false;
     while (!fetchComplete) {
@@ -179,7 +182,8 @@ export async function fetchTextChannelData(channel: TextChannel | NewsChannel, o
  */
 export async function loadCategory(categoryData: CategoryData, guild: Guild) {
     return new Promise<CategoryChannel>((resolve) => {
-        guild.channels.create(categoryData.name, {
+        guild.channels.create({
+            name: categoryData.name,
             type: ChannelType.GuildCategory
         }).then(async (category) => {
             // When the category is created
@@ -229,7 +233,9 @@ export async function loadChannel(
                             username: msg.username,
                             avatarURL: msg.avatar,
                             embeds: msg.embeds,
-                            files: msg.files,
+                            files: msg.files.map((f) => new AttachmentBuilder(f.attachment, {
+                                name: f.name
+                            })),
                             allowedMentions: options.allowedMentions,
                             threadId: channel.isThread() ? channel.id : undefined
                         })
@@ -258,7 +264,7 @@ export async function loadChannel(
             let bitrate = (channelData as VoiceChannelData).bitrate;
             const bitrates = Object.values(MaxBitratePerTier);
             while (bitrate > MaxBitratePerTier[guild.premiumTier]) {
-                bitrate = bitrates[Object.keys(MaxBitratePerTier).indexOf(guild.premiumTier) - 1];
+                bitrate = bitrates[guild.premiumTier];
             }
             createOptions.bitrate = bitrate;
             createOptions.userLimit = (channelData as VoiceChannelData).userLimit;
