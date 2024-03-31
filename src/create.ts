@@ -90,9 +90,9 @@ export async function getEmojis(guild: Guild, options: CreateOptions) {
             name: emoji.name
         };
         if (options.saveImages && options.saveImages === 'base64') {
-            eData.base64 = (await nodeFetch(emoji.url).then((res) => res.buffer())).toString('base64');
+            eData.base64 = (await nodeFetch(emoji.imageURL()).then((res) => res.buffer())).toString('base64');
         } else {
-            eData.url = emoji.url;
+            eData.url = emoji.imageURL();
         }
         emojis.push(eData);
     });
