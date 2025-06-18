@@ -1,4 +1,9 @@
-import { GuildDefaultMessageNotifications, GuildExplicitContentFilter, Snowflake, GuildVerificationLevel } from 'discord.js';
+import {
+    GuildDefaultMessageNotifications,
+    GuildExplicitContentFilter,
+    Snowflake,
+    GuildVerificationLevel
+} from 'discord.js';
 import { AfkData, BanData, ChannelsData, EmojiData, RoleData, WidgetData } from './';
 import { MemberData } from './MemberData';
 

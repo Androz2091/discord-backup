@@ -42,31 +42,42 @@ export const loadConfig = (guild: Guild, backupData: BackupData): Promise<Guild[
 /**
  * Restore the guild roles
  */
-export const loadRoles = (guild: Guild, backupData: BackupData): Promise<Role[]> => {
-    const rolePromises: Promise<Role>[] = [];
-    backupData.roles.forEach((roleData) => {
-        if (roleData.isEveryone) {
-            rolePromises.push(
-                guild.roles.cache.get(guild.id).edit({
-                    name: roleData.name,
-                    color: roleData.color,
-                    permissions: BigInt(roleData.permissions),
-                    mentionable: roleData.mentionable
-                })
-            );
-        } else {
-            rolePromises.push(
-                guild.roles.create({
-                    name: roleData.name,
+export const loadRoles = async (guild: Guild, backupData: BackupData): Promise<Role[]> => {
+    const roles: Role[] = [];
+
+    for (const roleData of backupData.roles) {
+        try {
+            let role: Role;
+
+            if (roleData.isEveryone) {
+                const everyoneRole = guild.roles.cache.get(guild.id);
+                if (everyoneRole) {
+                    role = await everyoneRole.edit({
+                        name: roleData.name,
+                        color: roleData.color,
+                        permissions: BigInt(roleData.permissions),
+                        mentionable: roleData.mentionable
+                    });
+                    roles.push(role);
+                }
+            } else {
+                role = await guild.roles.create({
+                    name: roleData.name.slice(0, 100),
                     color: roleData.color,
                     hoist: roleData.hoist,
                     permissions: BigInt(roleData.permissions),
                     mentionable: roleData.mentionable
-                })
-            );
+                });
+                roles.push(role);
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 250));
+        } catch (error: any) {
+            // Failed to create/edit role - skipping
         }
-    });
-    return Promise.all(rolePromises);
+    }
+
+    return roles;
 };
 
 /**
@@ -98,7 +109,13 @@ export const loadChannels = (guild: Guild, backupData: BackupData, options: Load
 export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> => {
     const afkPromises: Promise<Guild>[] = [];
     if (backupData.afk) {
-        afkPromises.push(guild.setAFKChannel(guild.channels.cache.find((ch) => ch.name === backupData.afk.name && ch.type === ChannelType.GuildVoice) as VoiceChannel));
+        afkPromises.push(
+            guild.setAFKChannel(
+                guild.channels.cache.find(
+                    (ch) => ch.name === backupData.afk.name && ch.type === ChannelType.GuildVoice
+                ) as VoiceChannel
+            )
+        );
         afkPromises.push(guild.setAFKTimeout(backupData.afk.timeout));
     }
     return Promise.all(afkPromises);
@@ -107,37 +124,61 @@ export const loadAFK = (guild: Guild, backupData: BackupData): Promise<Guild[]> 
 /**
  * Restore guild emojis
  */
-export const loadEmojis = (guild: Guild, backupData: BackupData): Promise<Emoji[]> => {
-    const emojiPromises: Promise<Emoji>[] = [];
-    backupData.emojis.forEach((emoji) => {
-        if (emoji.url) {
-            emojiPromises.push(guild.emojis.create({
-                name: emoji.name,
-                attachment: emoji.url
-            }));
-        } else if (emoji.base64) {
-            emojiPromises.push(guild.emojis.create({
-                name: emoji.name,
-                attachment: Buffer.from(emoji.base64, 'base64')
-            }));
+export const loadEmojis = async (guild: Guild, backupData: BackupData): Promise<Emoji[]> => {
+    const emojis: Emoji[] = [];
+    const maxEmojis =
+        guild.premiumTier === 0 ? 50 : guild.premiumTier === 1 ? 100 : guild.premiumTier === 2 ? 150 : 250;
+
+    for (let i = 0; i < Math.min(backupData.emojis.length, maxEmojis); i++) {
+        const emojiData = backupData.emojis[i];
+        try {
+            let emoji: Emoji;
+
+            if (emojiData.url) {
+                emoji = await guild.emojis.create({
+                    name: emojiData.name.slice(0, 32),
+                    attachment: emojiData.url
+                });
+            } else if (emojiData.base64) {
+                emoji = await guild.emojis.create({
+                    name: emojiData.name.slice(0, 32),
+                    attachment: Buffer.from(emojiData.base64, 'base64')
+                });
+            }
+
+            if (emoji) {
+                emojis.push(emoji);
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (error: any) {
+            // Failed to create emoji - skipping
         }
-    });
-    return Promise.all(emojiPromises);
+    }
+
+    return emojis;
 };
 
 /**
  * Restore guild bans
  */
-export const loadBans = (guild: Guild, backupData: BackupData): Promise<string[]> => {
-    const banPromises: Promise<string>[] = [];
-    backupData.bans.forEach((ban) => {
-        banPromises.push(
-            guild.members.ban(ban.id, {
-                reason: ban.reason
-            }) as Promise<string>
-        );
-    });
-    return Promise.all(banPromises);
+export const loadBans = async (guild: Guild, backupData: BackupData): Promise<string[]> => {
+    const bannedUsers: string[] = [];
+
+    for (const banData of backupData.bans) {
+        try {
+            await guild.members.ban(banData.id, {
+                reason: banData.reason || 'Restored from backup'
+            });
+            bannedUsers.push(banData.id);
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error: any) {
+            // Failed to ban user - skipping
+        }
+    }
+
+    return bannedUsers;
 };
 
 /**
@@ -149,7 +190,11 @@ export const loadEmbedChannel = (guild: Guild, backupData: BackupData): Promise<
         embedChannelPromises.push(
             guild.setWidgetSettings({
                 enabled: backupData.widget.enabled,
-                channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel) as NewsChannel | TextChannel | ForumChannel | VoiceBasedChannel
+                channel: guild.channels.cache.find((ch) => ch.name === backupData.widget.channel) as
+                    | NewsChannel
+                    | TextChannel
+                    | ForumChannel
+                    | VoiceBasedChannel
             })
         );
     }
