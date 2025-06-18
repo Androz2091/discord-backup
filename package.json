@@ -1,6 +1,6 @@
 {
   "name": "discord-backup",
-  "version": "3.4.0",
+  "version": "3.3.2",
   "description": "A complete framework to facilitate server backup using discord.js v14 with rate limiting and error handling",
   "main": "lib/index.js",
   "files": [
