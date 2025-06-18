@@ -8,7 +8,16 @@ import type {
     TextChannelData,
     VoiceChannelData
 } from './types';
-import type { CategoryChannel, Collection, Guild, GuildChannel, Snowflake, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
+import type {
+    CategoryChannel,
+    Collection,
+    Guild,
+    GuildChannel,
+    Snowflake,
+    TextChannel,
+    ThreadChannel,
+    VoiceChannel
+} from 'discord.js';
 import { ChannelType } from 'discord.js';
 import nodeFetch from 'node-fetch';
 import { fetchChannelPermissions, fetchTextChannelData, fetchVoiceChannelData } from './util';
@@ -21,13 +30,17 @@ import { MemberData } from './types/MemberData';
  */
 export async function getBans(guild: Guild) {
     const bans: BanData[] = [];
-    const cases = await guild.bans.fetch(); // Gets the list of the banned members
-    cases.forEach((ban) => {
-        bans.push({
-            id: ban.user.id, // Banned member ID
-            reason: ban.reason // Ban reason
+    try {
+        const cases = await guild.bans.fetch({ limit: 1000 });
+        cases.forEach((ban) => {
+            bans.push({
+                id: ban.user.id,
+                reason: ban.reason || 'No reason provided'
+            });
         });
-    });
+    } catch (error: any) {
+        // Failed to fetch bans - continuing without them
+    }
     return bans;
 }
 
@@ -38,17 +51,37 @@ export async function getBans(guild: Guild) {
  */
 export async function getMembers(guild: Guild) {
     const members: MemberData[] = [];
-    guild.members.cache.forEach((member) => {
-        members.push({
-            userId: member.user.id, // Member ID
-            username: member.user.username, // Member username
-            discriminator: member.user.discriminator, // Member discriminator
-            avatarUrl: member.user.avatarURL(), // Member avatar URL
-            joinedTimestamp: member.joinedTimestamp, // Member joined timestamp
-            roles: member.roles.cache.map((role) => role.id), // Member roles
-            bot: member.user.bot // Member bot
+    try {
+        await guild.members.fetch({ limit: 1000 });
+        guild.members.cache.forEach((member) => {
+            if (member.user) {
+                members.push({
+                    userId: member.user.id,
+                    username: member.user.username,
+                    discriminator: member.user.discriminator || '0',
+                    avatarUrl: member.user.avatarURL(),
+                    joinedTimestamp: member.joinedTimestamp,
+                    roles: member.roles.cache.map((role) => role.id),
+                    bot: member.user.bot
+                });
+            }
         });
-    });
+    } catch (error: any) {
+        // Failed to fetch members - falling back to cached members
+        guild.members.cache.forEach((member) => {
+            if (member.user) {
+                members.push({
+                    userId: member.user.id,
+                    username: member.user.username,
+                    discriminator: member.user.discriminator || '0',
+                    avatarUrl: member.user.avatarURL(),
+                    joinedTimestamp: member.joinedTimestamp,
+                    roles: member.roles.cache.map((role) => role.id),
+                    bot: member.user.bot
+                });
+            }
+        });
+    }
     return members;
 }
 
@@ -85,17 +118,44 @@ export async function getRoles(guild: Guild) {
  */
 export async function getEmojis(guild: Guild, options: CreateOptions) {
     const emojis: EmojiData[] = [];
-    guild.emojis.cache.forEach(async (emoji) => {
-        const eData: EmojiData = {
-            name: emoji.name
-        };
-        if (options.saveImages && options.saveImages === 'base64') {
-            eData.base64 = (await nodeFetch(emoji.imageURL()).then((res) => res.buffer())).toString('base64');
-        } else {
-            eData.url = emoji.imageURL();
-        }
-        emojis.push(eData);
-    });
+    try {
+        await guild.emojis.fetch();
+        await Promise.all(
+            guild.emojis.cache.map(async (emoji) => {
+                try {
+                    const eData: EmojiData = {
+                        name: emoji.name || 'unknown'
+                    };
+                    if (options.saveImages && options.saveImages === 'base64') {
+                        try {
+                            const response = await nodeFetch(emoji.imageURL());
+                            const buffer = await response.buffer();
+                            if (buffer.length <= 256 * 1024) {
+                                eData.base64 = buffer.toString('base64');
+                            } else {
+                                eData.url = emoji.imageURL();
+                            }
+                        } catch {
+                            eData.url = emoji.imageURL();
+                        }
+                    } else {
+                        eData.url = emoji.imageURL();
+                    }
+                    emojis.push(eData);
+                } catch (error: any) {
+                    // Failed to process emoji - skipping
+                }
+            })
+        );
+    } catch (error: any) {
+        // Failed to fetch emojis - falling back to cached emojis
+        guild.emojis.cache.forEach((emoji) => {
+            emojis.push({
+                name: emoji.name || 'unknown',
+                url: emoji.imageURL()
+            });
+        });
+    }
     return emojis;
 }
 
@@ -112,8 +172,12 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             others: []
         };
         // Gets the list of the categories and sort them by position
-        const categories = (guild.channels.cache
-            .filter((ch) => ch.type === ChannelType.GuildCategory) as Collection<Snowflake, CategoryChannel>)
+        const categories = (
+            guild.channels.cache.filter((ch) => ch.type === ChannelType.GuildCategory) as Collection<
+                Snowflake,
+                CategoryChannel
+            >
+        )
             .sort((a, b) => a.position - b.position)
             .toJSON() as CategoryChannel[];
         for (const category of categories) {
@@ -126,7 +190,7 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             const children = category.children.cache.sort((a, b) => a.position - b.position).toJSON();
             for (const child of children) {
                 // For each child channel
-                if (child.type === ChannelType.GuildText || child.type === ChannelType.GuildNews) {
+                if (child.type === ChannelType.GuildText || child.type === ChannelType.GuildAnnouncement) {
                     const channelData: TextChannelData = await fetchTextChannelData(child as TextChannel, options); // Gets the channel data
                     categoryData.children.push(channelData); // And then push the child in the categoryData
                 } else {
@@ -137,17 +201,23 @@ export async function getChannels(guild: Guild, options: CreateOptions) {
             channels.categories.push(categoryData); // Update channels object
         }
         // Gets the list of the other channels (that are not in a category) and sort them by position
-        const others = (guild.channels.cache
-            .filter((ch) => {
-                return !ch.parent && ch.type !== ChannelType.GuildCategory
-                    //&& ch.type !== 'GUILD_STORE' // there is no way to restore store channels, ignore them
-                    && ch.type !== ChannelType.GuildNewsThread && ch.type !== ChannelType.GuildPrivateThread && ch.type !== ChannelType.GuildPublicThread // threads will be saved with fetchTextChannelData
-            }) as Collection<Snowflake, Exclude<GuildChannel, ThreadChannel>>)
+        const others = (
+            guild.channels.cache.filter((ch) => {
+                return (
+                    !ch.parent &&
+                    ch.type !== ChannelType.GuildCategory &&
+                    // && ch.type !== 'GUILD_STORE' // there is no way to restore store channels, ignore them
+                    ch.type !== ChannelType.AnnouncementThread &&
+                    ch.type !== ChannelType.PrivateThread &&
+                    ch.type !== ChannelType.PublicThread
+                ); // threads will be saved with fetchTextChannelData
+            }) as Collection<Snowflake, Exclude<GuildChannel, ThreadChannel>>
+        )
             .sort((a, b) => a.position - b.position)
             .toJSON();
         for (const channel of others) {
             // For each channel
-            if (channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildNews) {
+            if (channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement) {
                 const channelData: TextChannelData = await fetchTextChannelData(channel as TextChannel, options); // Gets the channel data
                 channels.others.push(channelData); // Update channels object
             } else {

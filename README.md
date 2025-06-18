@@ -3,7 +3,7 @@
 [![downloadsBadge](https://img.shields.io/npm/dt/discord-backup?style=for-the-badge)](https://npmjs.com/discord-backup)
 [![versionBadge](https://img.shields.io/npm/v/discord-backup?style=for-the-badge)](https://npmjs.com/discord-backup)
 
-**Note**: this module uses recent discordjs features and requires discord.js v13.
+**Note**: this module now supports Discord.js v14.20+ with advanced rate limiting and error handling.
 
 Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows you to easily manage discord server backups.
 
@@ -12,8 +12,21 @@ Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows yo
 * Even restores messages with webhooks!
 * And restores everything that is possible to restore (channels, roles, permissions, bans, emojis, name, icon, and more!)
 
-## Changelog
+## Changelog v3.4.0
 
+### New Features
+* ✅ **Discord.js v14.20+ Support** - Fully compatible with latest Discord.js
+* ✅ **Advanced Rate Limiting** - Built-in rate limiting to prevent API rate limit errors
+* ✅ **Enhanced Error Handling** - Better error catching and recovery mechanisms
+* ✅ **Memory Optimization** - Improved memory usage for large servers
+* ✅ **Retry Logic** - Automatic retry for failed operations with exponential backoff
+* ✅ **File Size Limits** - Automatic file size checking to prevent oversized attachments
+* ✅ **Emoji Limits** - Respects server premium tier emoji limits
+* ✅ **Sequential Processing** - Controlled message/role/channel creation to avoid rate limits
+
+**[How to migrate to v14.20.0](#technical-changes-v14200-migration)**
+
+### Previous Changes
 * Supports base64 for emojis/icon/banner backup
 * New option to save backups in your own database
 * `backup#delete()` removed in favor of `backup#remove()`
@@ -160,20 +173,31 @@ backup.load(backupData, guild, {
 ## Example Bot
 
 ```js
-// Load modules
-const Discord = require("discord.js"),
-backup = require("discord-backup"),
-client = new Discord.Client(),
-settings = {
+// Load modules (Discord.js v14.20+ Compatible)
+const { Client, GatewayIntentBits, Events, EmbedBuilder } = require("discord.js");
+const backup = require("discord-backup");
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildBans,
+        GatewayIntentBits.GuildEmojisAndStickers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+const settings = {
     prefix: "b!",
     token: "YOURTOKEN"
 };
 
-client.on("ready", () => {
-    console.log("I'm ready !");
+client.once(Events.ClientReady, () => {
+    console.log(`✅ Bot ${client.user.tag} is ready!`);
 });
 
-client.on("message", async message => {
+client.on(Events.MessageCreate, async message => {
 
     // This reads the first part of your message behind your prefix to see which command you want to use.
     let command = message.content.toLowerCase().slice(settings.prefix.length).split(" ")[0];
@@ -187,8 +211,8 @@ client.on("message", async message => {
     if (!message.content.startsWith(settings.prefix) || message.author.bot || !message.guild) return;
 
     if(command === "create"){
-        // Check member permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")){
+        // Check member permissions (v14 syntax)
+        if(!message.member.permissions.has("Administrator")){
             return message.channel.send(":x: | You must be an administrator of this server to request a backup!");
         }
         // Create the backup
@@ -202,8 +226,8 @@ client.on("message", async message => {
     }
 
     if(command === "load"){
-        // Check member permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")){
+        // Check member permissions (v14 syntax)
+        if(!message.member.permissions.has("Administrator")){
             return message.channel.send(":x: | You must be an administrator of this server to load a backup!");
         }
         let backupID = args[0];
@@ -249,18 +273,20 @@ client.on("message", async message => {
             const date = new Date(backupInfos.data.createdTimestamp);
             const yyyy = date.getFullYear().toString(), mm = (date.getMonth()+1).toString(), dd = date.getDate().toString();
             const formatedDate = `${yyyy}/${(mm[1]?mm:"0"+mm[0])}/${(dd[1]?dd:"0"+dd[0])}`;
-            let embed = new Discord.MessageEmbed()
-                .setAuthor("Backup Informations")
+            let embed = new EmbedBuilder()
+                .setAuthor({ name: "Backup Informations" })
                 // Display the backup ID
-                .addField("Backup ID", backupInfos.id, false)
-                // Displays the server from which this backup comes
-                .addField("Server ID", backupInfos.data.guildID, false)
-                // Display the size (in mb) of the backup
-                .addField("Size", `${backupInfos.size} kb`, false)
-                // Display when the backup was created
-                .addField("Created at", formatedDate, false)
+                .addFields(
+                    { name: "Backup ID", value: backupInfos.id, inline: false },
+                    // Displays the server from which this backup comes
+                    { name: "Server ID", value: backupInfos.data.guildID, inline: false },
+                    // Display the size (in mb) of the backup
+                    { name: "Size", value: `${backupInfos.size} kb`, inline: false },
+                    // Display when the backup was created
+                    { name: "Created at", value: formatedDate, inline: false }
+                )
                 .setColor("#FF0000");
-            message.channel.send(embed);
+            message.channel.send({ embeds: [embed] });
         }).catch((err) => {
             // if the backup wasn't found
             return message.channel.send(":x: | No backup found for `"+backupID+"`!");
@@ -296,3 +322,53 @@ Example of things that can't be restored:
 * Server logs  
 * Server invitations  
 * Server vanity url
+
+## Technical Changes (v14.20.0 Migration)
+
+### 🔧 Channel Type Updates
+* Updated deprecated `ChannelType.GuildNewsThread` → `ChannelType.AnnouncementThread`
+* Updated deprecated `ChannelType.GuildPrivateThread` → `ChannelType.PrivateThread`
+* Updated deprecated `ChannelType.GuildPublicThread` → `ChannelType.PublicThread`
+* Updated `ChannelType.GuildNews` → `ChannelType.GuildAnnouncement`
+
+### ⚡ Rate Limiting Implementation
+* Added `withRetry()` function with exponential backoff (3 retries max)
+* Sequential role creation with 250ms delays
+* Sequential emoji creation with 500ms delays
+* Sequential ban operations with 1000ms delays
+* Message sending with 1000ms delays between messages
+
+### 🛡️ Error Handling Improvements
+* Proper TypeScript error typing (`error: any`)
+* Graceful degradation for failed operations
+* Rate limit detection and automatic waiting
+* Permission error immediate failing
+* Memory-safe attachment processing (8MB limit)
+
+### 📱 Memory Optimizations
+* Message limit enforcement (max 1000 per channel)
+* Attachment size checking (8MB max)
+* Emoji size limits (256KB max for base64)
+* Embed field limiting (10 embeds, 25 fields each)
+* Premium tier emoji limits enforcement
+
+### 🔄 Discord.js v14 Compatibility
+* Updated discriminator handling (fallback to '0')
+* New intent requirements documentation
+* Fixed `ChannelNotCached` errors in test files
+* Updated embed structure for v14
+* Modern async/await patterns throughout
+
+### 🧪 Test File Enhancements
+* Comprehensive test bot with all backup operations
+* Channel reference management for guild clearing
+* Fallback message sending mechanisms
+* Advanced error handling for Discord API issues
+* Rate limit-aware testing procedures
+
+### 💻 Code Quality Improvements
+* Removed all `console.warn` statements for production readiness
+* Fixed TSLint errors and improved TypeScript compliance
+* Updated array type declarations (`Array<T>` → `T[]`)
+* Proper const/let usage throughout codebase
+* Enhanced comment formatting and documentation

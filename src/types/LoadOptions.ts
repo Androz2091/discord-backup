@@ -1,4 +1,4 @@
-import { MessageMentionOptions } from "discord.js";
+import { MessageMentionOptions } from 'discord.js';
 
 export interface LoadOptions {
     clearGuildBeforeRestore: boolean;
