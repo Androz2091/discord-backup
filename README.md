@@ -24,48 +24,7 @@ Discord Backup is a powerful [Node.js](https://nodejs.org) module that allows yo
 * ✅ **Emoji Limits** - Respects server premium tier emoji limits
 * ✅ **Sequential Processing** - Controlled message/role/channel creation to avoid rate limits
 
-### Technical Changes (v14.20.0 Migration)
-
-**🔧 Channel Type Updates:**
-* Updated deprecated `ChannelType.GuildNewsThread` → `ChannelType.AnnouncementThread`
-* Updated deprecated `ChannelType.GuildPrivateThread` → `ChannelType.PrivateThread`
-* Updated deprecated `ChannelType.GuildPublicThread` → `ChannelType.PublicThread`
-* Updated `ChannelType.GuildNews` → `ChannelType.GuildAnnouncement`
-
-**⚡ Rate Limiting Implementation:**
-* Added `withRetry()` function with exponential backoff (3 retries max)
-* Sequential role creation with 250ms delays
-* Sequential emoji creation with 500ms delays
-* Sequential ban operations with 1000ms delays
-* Message sending with 1000ms delays between messages
-
-**🛡️ Error Handling Improvements:**
-* Proper TypeScript error typing (`error: any`)
-* Graceful degradation for failed operations
-* Rate limit detection and automatic waiting
-* Permission error immediate failing
-* Memory-safe attachment processing (8MB limit)
-
-**📱 Memory Optimizations:**
-* Message limit enforcement (max 1000 per channel)
-* Attachment size checking (8MB max)
-* Emoji size limits (256KB max for base64)
-* Embed field limiting (10 embeds, 25 fields each)
-* Premium tier emoji limits enforcement
-
-**🔄 Discord.js v14 Compatibility:**
-* Updated discriminator handling (fallback to '0')
-* New intent requirements documentation
-* Fixed `ChannelNotCached` errors in test files
-* Updated embed structure for v14
-* Modern async/await patterns throughout
-
-**🧪 Test File Enhancements:**
-* Comprehensive test bot with all backup operations
-* Channel reference management for guild clearing
-* Fallback message sending mechanisms
-* Advanced error handling for Discord API issues
-* Rate limit-aware testing procedures
+**[How to migrate to v14.20.0](#technical-changes-v14200-migration)**
 
 ### Previous Changes
 * Supports base64 for emojis/icon/banner backup
@@ -363,3 +322,53 @@ Example of things that can't be restored:
 * Server logs  
 * Server invitations  
 * Server vanity url
+
+## Technical Changes (v14.20.0 Migration)
+
+### 🔧 Channel Type Updates
+* Updated deprecated `ChannelType.GuildNewsThread` → `ChannelType.AnnouncementThread`
+* Updated deprecated `ChannelType.GuildPrivateThread` → `ChannelType.PrivateThread`
+* Updated deprecated `ChannelType.GuildPublicThread` → `ChannelType.PublicThread`
+* Updated `ChannelType.GuildNews` → `ChannelType.GuildAnnouncement`
+
+### ⚡ Rate Limiting Implementation
+* Added `withRetry()` function with exponential backoff (3 retries max)
+* Sequential role creation with 250ms delays
+* Sequential emoji creation with 500ms delays
+* Sequential ban operations with 1000ms delays
+* Message sending with 1000ms delays between messages
+
+### 🛡️ Error Handling Improvements
+* Proper TypeScript error typing (`error: any`)
+* Graceful degradation for failed operations
+* Rate limit detection and automatic waiting
+* Permission error immediate failing
+* Memory-safe attachment processing (8MB limit)
+
+### 📱 Memory Optimizations
+* Message limit enforcement (max 1000 per channel)
+* Attachment size checking (8MB max)
+* Emoji size limits (256KB max for base64)
+* Embed field limiting (10 embeds, 25 fields each)
+* Premium tier emoji limits enforcement
+
+### 🔄 Discord.js v14 Compatibility
+* Updated discriminator handling (fallback to '0')
+* New intent requirements documentation
+* Fixed `ChannelNotCached` errors in test files
+* Updated embed structure for v14
+* Modern async/await patterns throughout
+
+### 🧪 Test File Enhancements
+* Comprehensive test bot with all backup operations
+* Channel reference management for guild clearing
+* Fallback message sending mechanisms
+* Advanced error handling for Discord API issues
+* Rate limit-aware testing procedures
+
+### 💻 Code Quality Improvements
+* Removed all `console.warn` statements for production readiness
+* Fixed TSLint errors and improved TypeScript compliance
+* Updated array type declarations (`Array<T>` → `T[]`)
+* Proper const/let usage throughout codebase
+* Enhanced comment formatting and documentation
