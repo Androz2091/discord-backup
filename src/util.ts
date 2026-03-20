@@ -468,7 +468,7 @@ export async function loadChannel(
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
 export async function clearGuild(guild: Guild) {
-    // 各種リソースの削除を並列で実行し、完了を待つ
+    // Delete all resources in parallel and wait for completion
     await Promise.allSettled(
         guild.roles.cache
             .filter((role) => !role.managed && role.editable && role.id !== guild.id)
