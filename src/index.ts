@@ -18,9 +18,18 @@ if (!existsSync(backups)) {
 }
 
 /**
+ * Validates a backup ID to prevent path traversal attacks.
+ * Only alphanumeric characters, hyphens, and underscores are allowed.
+ */
+const validateBackupID = (backupID: string): void => {
+    if (!/^[\w-]+$/.test(backupID)) throw new Error('Invalid backup ID');
+};
+
+/**
  * Checks if a backup exists and returns its data
  */
 const getBackupData = async (backupID: string) => {
+    validateBackupID(backupID);
     return new Promise<BackupData>(async (resolve, reject) => {
         const files = await readdir(backups); // Read "backups" directory
         // Try to get the json file
@@ -42,6 +51,11 @@ const getBackupData = async (backupID: string) => {
  */
 export const fetch = (backupID: string) => {
     return new Promise<BackupInfos>(async (resolve, reject) => {
+        try {
+            validateBackupID(backupID);
+        } catch (e) {
+            return reject(e);
+        }
         getBackupData(backupID)
             .then((backupData) => {
                 const size = statSync(`${backups}${sep}${backupID}.json`).size; // Gets the size of the file using fs
@@ -213,6 +227,7 @@ export const load = async (
 export const remove = async (backupID: string) => {
     return new Promise<void>((resolve, reject) => {
         try {
+            validateBackupID(backupID);
             require(`${backups}${sep}${backupID}.json`);
             unlinkSync(`${backups}${sep}${backupID}.json`);
             resolve();

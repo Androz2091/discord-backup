@@ -88,11 +88,13 @@ export const loadChannels = (guild: Guild, backupData: BackupData, options: Load
     backupData.channels.categories.forEach((categoryData) => {
         loadChannelPromises.push(
             new Promise((resolve) => {
-                loadCategory(categoryData, guild).then((createdCategory) => {
-                    categoryData.children.forEach((channelData) => {
-                        loadChannel(channelData, guild, createdCategory, options);
-                        resolve(true);
-                    });
+                loadCategory(categoryData, guild).then(async (createdCategory) => {
+                    await Promise.all(
+                        categoryData.children.map((channelData) =>
+                            loadChannel(channelData, guild, createdCategory, options)
+                        )
+                    );
+                    resolve(true);
                 });
             })
         );

@@ -468,44 +468,49 @@ export async function loadChannel(
  * Delete all roles, all channels, all emojis, etc... of a guild
  */
 export async function clearGuild(guild: Guild) {
-    guild.roles.cache
-        .filter((role) => !role.managed && role.editable && role.id !== guild.id)
-        .forEach((role) => {
-            role.delete().catch(() => {});
-        });
-    guild.channels.cache.forEach((channel) => {
-        channel.delete().catch(() => {});
-    });
-    guild.emojis.cache.forEach((emoji) => {
-        emoji.delete().catch(() => {});
-    });
+    // 各種リソースの削除を並列で実行し、完了を待つ
+    await Promise.allSettled(
+        guild.roles.cache
+            .filter((role) => !role.managed && role.editable && role.id !== guild.id)
+            .map((role) => role.delete().catch(() => {}))
+    );
+    await Promise.allSettled(
+        guild.channels.cache.map((channel) => channel.delete().catch(() => {}))
+    );
+    await Promise.allSettled(
+        guild.emojis.cache.map((emoji) => emoji.delete().catch(() => {}))
+    );
     const webhooks = await guild.fetchWebhooks();
-    webhooks.forEach((webhook) => {
-        webhook.delete().catch(() => {});
-    });
+    await Promise.allSettled(
+        webhooks.map((webhook) => webhook.delete().catch(() => {}))
+    );
     const bans = await guild.bans.fetch();
-    bans.forEach((ban) => {
-        guild.members.unban(ban.user).catch(() => {});
-    });
-    guild.setAFKChannel(null);
-    guild.setAFKTimeout(60 * 5);
-    guild.setIcon(null);
-    guild.setBanner(null).catch(() => {});
-    guild.setSplash(null).catch(() => {});
-    guild.setDefaultMessageNotifications(GuildDefaultMessageNotifications.OnlyMentions);
-    guild.setWidgetSettings({
-        enabled: false,
-        channel: null
-    });
-    if (!guild.features.includes(GuildFeature.Community)) {
-        guild.setExplicitContentFilter(GuildExplicitContentFilter.Disabled);
-        guild.setVerificationLevel(GuildVerificationLevel.None);
-    }
-    guild.setSystemChannel(null);
-    guild.setSystemChannelFlags([
-        GuildSystemChannelFlags.SuppressGuildReminderNotifications,
-        GuildSystemChannelFlags.SuppressJoinNotifications,
-        GuildSystemChannelFlags.SuppressPremiumSubscriptions
+    await Promise.allSettled(
+        bans.map((ban) => guild.members.unban(ban.user).catch(() => {}))
+    );
+    await Promise.allSettled([
+        guild.setAFKChannel(null),
+        guild.setAFKTimeout(60 * 5),
+        guild.setIcon(null),
+        guild.setBanner(null).catch(() => {}),
+        guild.setSplash(null).catch(() => {}),
+        guild.setDefaultMessageNotifications(GuildDefaultMessageNotifications.OnlyMentions),
+        guild.setWidgetSettings({
+            enabled: false,
+            channel: null
+        }),
+        ...(!guild.features.includes(GuildFeature.Community)
+            ? [
+                guild.setExplicitContentFilter(GuildExplicitContentFilter.Disabled),
+                guild.setVerificationLevel(GuildVerificationLevel.None)
+            ]
+            : []),
+        guild.setSystemChannel(null),
+        guild.setSystemChannelFlags([
+            GuildSystemChannelFlags.SuppressGuildReminderNotifications,
+            GuildSystemChannelFlags.SuppressJoinNotifications,
+            GuildSystemChannelFlags.SuppressPremiumSubscriptions
+        ])
     ]);
     return;
 }
